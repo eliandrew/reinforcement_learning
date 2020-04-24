@@ -151,4 +151,6 @@ dmypy.json
 *.mtc
 *.mtc1
 *.out
+*.fdb_latexmk
+*.fls
 *.synctex.gz
