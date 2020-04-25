@@ -51,10 +51,30 @@ Name: & Eli Andrew
   that is, it always played the move that brought it to the position that it rated the best. Might it
   learn to play better, or worse, than a nongreedy player? What problems might occur?
   \begin{itemize}
-    \item A greedy player would essentially never explore a different policy and would always take what
-    it currently views as the best possible action. Originally, this means that from any given state the 
-    player would always go to the same state.
+    \item A greedy player would always select what it currently "thinks" is best. In many cases this might be
+    the actual best move, however, in certain cases it might miss potentially useful moves it has yet to try.
+    These would likely be moves that require entering a lower valued state before eventually reaching a higher
+    valued state later on. Therefore, it is likely it would learn to play worse than the nongreedy player who
+    would be able to view the game as a whole rather than as just doing the best thing for the current move.
   \end{itemize}
+  \item \textbf{Exercise 1.4: Learning from Exploration} Suppose learning updates occurred after \textit{all}
+  moves, including exploratory moves. If the step-size parameter is appropriately reduced over time (but not
+  the tendency to explore), then the state values would converge to a different set of probabilities. What
+  (conceptually) are the two sets of probabilities computed when we do, and when we do not, learn from exploratory
+  moves? Assuming that we do continue to make exploratory moves, which set of probabilities might be better to learn?
+  Which would result in more wins?
+  \begin{itemize}
+    \item Conceptually, the difference between the probabilities computed when updating for all moves vs. only for
+    non-exploratory moves, is that in the former we are learning probabilities that take into account the price that
+    must be paid for exploration, while in the latter we are not paying any price for exploration. The former strategy
+    would result in probabilities that accurately account for the many possibilities of movements from a given state,
+    while the latter would only be accounting for the current most profitable move from a given state. Therefore, the 
+    former strategy would result in more discipled exploration while the latter would be more careless. In the short term
+    I would expect the former strategy to outperform the former strategy, however, in the long term I would expect the
+    opposite, since the latter would have explored more of the state space.
+  \end{itemize}
+  \item \textbf{Exercise 1.5: Other Improvements} Can you think of other ways to improve the reinforcement learning player?
+  Can you think of any better way to solve the tic-tac-toe problem as posed?
 \end{enumerate}
 
 \end{document}
