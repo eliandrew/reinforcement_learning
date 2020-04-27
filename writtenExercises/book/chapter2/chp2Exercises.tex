@@ -55,7 +55,7 @@ Name: & Eli Andrew
     \item The method would perform better or worse on average on certain early steps because it is exploring the whole state space
     and will therefore swing between the high and low rewards present in the space.
   \end{itemize}
-  \item \textbf{Exericse 2.7: Unbiased Constant-Step-Size Trick} In most of this chapter we have used sample averages to estimate action
+  \item \textbf{Exercise 2.7: Unbiased Constant-Step-Size Trick} In most of this chapter we have used sample averages to estimate action
   values because sample averages do not produce the initial bias that constant step sizes do. However, sample averages are not a completely
   satisfactory solution because they may perform poorly on nonstationary problems. It is possible to avoid the bias of constant step sizes
   while retaining their advatages on nonstationary problems? One way is to use a step size of $\beta_n = \frac{\alpha}{\bar{o}_n}$ to process 
@@ -71,7 +71,7 @@ Name: & Eli Andrew
     step 11 we lower our expectations because we try the max action again and receive a lower than expected reward.
   \end{itemize}
   \item \textbf{Exercise 2.10} Suppose you face a 2-armed bandit task whose true action values change randomly from time step to time step.
-  \item Specifically, suppose that, for any time step, the true values of action 1 and 2 are respectively 0.1 and 0.2 with probability 0.5
+  Specifically, suppose that, for any time step, the true values of action 1 and 2 are respectively 0.1 and 0.2 with probability 0.5
   (case A), and 0.9 and and 0.8 with probability 0.5 (case B). If you are not able to tell which case you face at any step, what is the best
   expectation of success you can achieve and how should you behave to achieve it? Now suppose that on each step you are told whether you are
   facing case A or case B (although you still don't know the true action values). This is an associative search task. What is the best
