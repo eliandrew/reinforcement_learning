@@ -16,7 +16,7 @@ class Board:
     ----------
     state: list[list[int]] 
       A 2D list with dimensions equal to the dimensions of the board.
-      Values should be 0 for empty, 1 for player X, or 2 for play O.
+      Values should be 0 for empty, 1 for player X, or 2 for player O.
 
     Returns
     -------
@@ -29,7 +29,8 @@ class Board:
     def display_row(row):
       return "|".join([value_markers[i] for i in row]) + "\n"
 
-    return row_separator.join([display_row(r) for r in state])
+    board_display = row_separator.join([display_row(r) for r in state])
+    return board_display
 
       
 
