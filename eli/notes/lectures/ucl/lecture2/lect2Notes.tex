@@ -60,6 +60,26 @@ Name: & Eli Andrew
     \item Bellman equation for $Q^\pi$: $q_\pi(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\pi(s')$ where
     we are getting our immediate reward $R_s^a$ for the current state and then the discounted reward over all possible states $s' \in S$ we could end
     up in when taking action $a$ from state $s$.
+    \item Then taking these two together we can define: \\
+    $v_\pi(s) = \sum_{a \in A}\pi(a | s)(R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\pi(s'))$ \\
+    where this is representing the value from a particular state $s$ using some policy $\pi$ by: \\
+    the sum over all actions in the action space of the probability we take that action using this policy
+    given that we are in state s, multiplied by the reward for doing so, which is given as the current
+    reward $R_s^a$ plus the future discounted reward which is calculated as the sum over all possible states
+    in $S$ of the probability of transitioning from the current state $s$ to the new state $s'$ when we perform
+    action $a$ multiplied by the value of being in the next state $s'$ using policy $\pi$.
+    \item We can also define $q_\pi(s,a)$ as $R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a \sum_{a' \in A} \pi(a' | s')q_\pi(a', s')$
+    \item Optimal value function $v_*(s) = max_\pi(v_\pi(s))$
+    \item Optimal action value function $q_*(s, a) = max_\pi(q_\pi(s, a))$
+    \item For any MDP, there exists an optimal policy $\pi_*$ that is greater than or equal to all other policies. This optimal policy
+    also acheives the optimal value function $v_*(s) = v_\pi(s)$ and the optimal action value function $q_*(s,a) = q_\pi(s,a)$.
+    \item Bellman optimality equation for $v_*(s) = max_a(q_*(s, a))$
+    \item Bellman optimality equation for $q_*(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_*(s')$
+    \item Putting these two together we get: $max_a(R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_*(s'))$\\
+    with which we are looking ahead 2 steps: (1) at the actions we can take and (2) at the ways the environment may move us.
+    \item Bellman optimality equation is non-linear and has no closed form solution in general.
+    \item Iterative solution methods to the Bellman optimality equation include: (1) value iteration, (2) policy iteration,
+    (3) Q-learning, (4) SARSA
   \end{itemize}
 
 
