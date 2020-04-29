@@ -24,14 +24,12 @@ class Board:
         self.current_player = 1
 
     def play_turn(self, state):
-        """Determines the new board state after playing the given coord for the 
-        current player. This will then set its board_space to the new board and
-        update the current player.
+        """Sets its board_space to the given state and updates the current player.
 
         Parameters
         ----------
-        coord: tuple(int, int)
-          The coordinate on the board that should be played
+        state: np.array[np.array[int]]
+          The new board state to transition to.
         """
         self.board_space = state
         self.current_player = 1 if self.current_player is 2 else 2
