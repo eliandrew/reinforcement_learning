@@ -1,0 +1,37 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,enumitem,amsmath,amssymb,graphicx}
+
+\newcommand{\ub}{\boldsymbol{u}}
+\newcommand{\vb}{\boldsymbol{v}}
+
+\begin{document}
+
+\begin{center}
+{\Large Reinforcement Learning: Lecture 1 Notes}
+
+\begin{tabular}{rl}
+Name: & Eli Andrew
+\end{tabular}
+\end{center}
+
+  \begin{itemize}
+    \item Types of RL agents
+    \begin{itemize}
+      \item \textbf{Model-based} agents have an explicit model and may or may not
+      have policy and/or value functions. The model in these agents is a model of
+      the environment that the agent is in and it estimates things like state transition
+      probabilities and state rewards.
+      \item \textbf{Model-free} agents have an explicit value and/or policy function
+      and no model. These agents don't use a model of the environment to make their
+      decisions and instead do things like estimate the value of certain actions
+      and search of the space of policies. An example of a model-free agent is one
+      that uses Q-learning to estimate action values and then policies.
+    \end{itemize}
+    \item Time horizon differences (finite, infinite, and indefinite)
+    \item Stationary vs. non stationary 
+    \item On policy vs off policy
+
+  \end{itemize}
+
+
+\end{document}
