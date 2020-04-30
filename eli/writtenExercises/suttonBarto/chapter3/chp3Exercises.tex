@@ -1,0 +1,34 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,enumitem,amsmath,amssymb,graphicx}
+
+\newcommand{\ub}{\boldsymbol{u}}
+\newcommand{\vb}{\boldsymbol{v}}
+
+\begin{document}
+
+\begin{center}
+{\Large Reinforcement Learning: Chapter 3 Exercises}
+
+\begin{tabular}{rl}
+Name: & Eli Andrew
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[label=(\alph*)]
+  \item \textbf{Exercise 3.11:} If the current state is $S_t$, and actions
+  are selected according to stochastic policy $\pi$, then what is the expecation
+  of $R_t+1$ in terms of $\pi$ and the four-argument function $p$ (3.2)?
+  \begin{itemize}
+    \item (3.2) states: $p(s', r | s, a) \dot{=} Pr{S_t = s', R_t = r | S_{t-1} = s, A_{t-1} = a}$
+    \item This equation gives the probability of being in $s'$ and receiving $r$ given that you were
+    previously in state $s$ and took action $a$.
+    \item Expected reward in the next time step $R_{t+1}$ is equal to the rewards received from every action
+    you can take from $S_t$ multiplied by their probability of occuring.
+    \item This gives $R_{t+1}$ as the sum over all actions of the probability of taking the particular action
+    multiplied by the reward from taking the action:\\
+    $\sum_{a \in A} \pi(a | S_t) p(s', r | S_t, a)$
+  \end{itemize}
+  
+\end{enumerate}
+
+\end{document}
