@@ -9,7 +9,7 @@ class Agent:
         self.default_value = 0.0
         self.state_values = defaultdict(lambda: self.default_value)
 
-    def temporal_difference_update(self, alpha=0.01):
+    def temporal_difference_update(alpha=0.01):
         """Returns the temporal difference update given the current values of the states
 
         Parameters
@@ -31,7 +31,8 @@ class Agent:
 
         return lambda value_one, value_two: value_one + alpha * (value_two - value_one)
 
-    def calculate_value_update(self, start_state, end_state, update_func=temporal_difference_update()):
+    def calculate_value_update(self, start_state, end_state):
+        # , update_func=lambda: self.temporal_difference_update()):
         """Calculate the updates to the values from the start_state to the end_state
 
         Parameters
@@ -51,7 +52,7 @@ class Agent:
             Updated state value for the start state
 
         """
-        return update_func(self.state_values[start_state], self.state_values[end_state])
+        return self.temporal_difference_update()(self.state_values[start_state], self.state_values[end_state])
 
     def max_value_action(self, actions):
         """Returns the maximum value from a set of actions
@@ -85,7 +86,8 @@ class Agent:
 
         return lambda board, actions: random.choices([random.choice(actions), self.max_value_action(actions)], weights=[epsilon, 1-epsilon])
 
-    def policy_selection(self, board_state, actions, policy_func=epsilon_greedy_policy()):
+    def policy_selection(self, board_state, actions):
+        # , policy_func=lambda: self.epsilon_greedy_policy()):
         """
         """
-        return policy_func(board_state, actions)
+        return self.epsilon_greedy_policy()(board_state, actions)

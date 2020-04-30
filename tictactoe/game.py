@@ -10,7 +10,7 @@ class Game:
     def play_a_turn(self):
         if self.board.current_player == 1:
             self.board.play_turn(self.agent.policy_selection(
-                self.board.board_space, self.board.potential_next_states))
+                self.board.board_space, self.board.potential_next_states()))
         else:
             x = input("X: ")
             y = input("Y: ")
