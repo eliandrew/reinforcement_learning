@@ -1,0 +1,89 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,enumitem,amsmath,amssymb,graphicx}
+
+\newcommand{\ub}{\boldsymbol{u}}
+\newcommand{\vb}{\boldsymbol{v}}
+
+\begin{document}
+
+\begin{center}
+{\Large Reinforcement Learning David Silver: Lecture 3 Notes}
+
+\begin{tabular}{rl}
+Name: & Eli Andrew
+\end{tabular}
+\end{center}
+
+  \begin{itemize}
+    \item Dynamic programming
+    \begin{itemize}
+      \item Dynamic sequential or temporal component to the problem
+      \item Program as in the policy we are trying to optimize
+      \item Method for solving complex problems by breaking into subproblems
+      and then solving the subproblems and putting them together to arrive at a solution
+      \item Two necessary properties: (1) optimal substructure (problem can be broken into 
+      subproblems that can then be combined again) (2) overlapping subproblems (the subproblems
+      occur many times)
+      \item MDPs have these two properties 
+      \begin{itemize}
+        \item Recursive decomposition is given by the Bellman Equation
+        \item Subproblem value caching can be acheived with the value function
+        (stores all useful computed information about the MDP)
+      \end{itemize}
+      \item Assumes full knowledge of MDP and is used for planning
+      \item Can be used for prediction:
+      \begin{itemize}
+        \item Input: MDP $<S, A, P, R, \gamma>$ and a policy $\pi$
+        \item Output: value function $v_\pi$
+      \end{itemize}
+      \item Can also be used for control:
+      \begin{itemize}
+        \item Input: MDP $<S, A, P, R, \gamma>$ 
+        \item Output: optimal policy $\pi_*$ and optimal value function $v_*$
+      \end{itemize}
+    \end{itemize}
+    \item Policy evaluation
+    \begin{itemize}
+      \item This is when you are told the MDP and the policy and you want to calculate the
+      value of the policy $v_\pi$
+      \item General strategy: perform an iterative application of the Bellman expectation backup
+      \item Start with inital state values in $v_1$ and then apply Bellman expectation to get $v_2$
+      and continue to converge to $v_pi$
+      \item Using synchronous backups:
+      \begin{itemize}
+        \item At each iteration $k+1$
+        \item For all states $s \in S$:
+        \item Update $v_{k+1}(s)$ from $v_k(s')$ where $s'$ is a successor state of $s$
+        \item Where $v_{k+1}(s) = \sum_{a \in A}\pi(a | s) (R_{s}^a + \gamma \sum_{s' \in S}P_{ss'}^a v_{k}(s'))$
+      \end{itemize}
+    \end{itemize}
+    \item Policy iteration
+    \begin{itemize}
+      \item Goal is to find the best possible policy in the MDP vs. evaluating a fixed policy like
+      we did in policy evaluation
+      \item One way to look at this is given a policy $\pi$ how can we return a polciy $\pi'$ that is
+      better than $\pi$
+      \item So, given a policy $\pi$
+      \begin{itemize}
+        \item \textbf{Evaluate} the policy $\pi$: $v_\pi(s) = E[R_{t+1} + \gamma R_{t+2} + \dots | S_t = s]$
+        \item \textbf{Improve} the policy by acting greedily with respect to $v_\pi$: $\pi' = greedy(v_\pi)$
+      \end{itemize}
+      \item Policy iteration always converges to the optimal policy $\pi_*$
+      \item On each iteration of this we generate a value function $v_\pi$ which we act greedily on to get some
+      new policy $\pi'$, which on the next iteration gives a new value function $v_{\pi'}$ and then a new policy
+      $\pi''$ and so on and so on until we obtain $v_*$ and $\pi_*$
+      \item Put another way:
+      \begin{itemize}
+        \item Consider a deterministic policy: $a = \pi(s)$
+        \item We can improve the policy by acting greedily: $\pi'(s) = argmax_{a \in A}q_\pi(s, a)$
+        \item Acting greedily at least improves value for a single step: 
+        $q_\pi(s, \pi'(s)) = max_{a \in A}q_\pi(s,a) \ge q_\pi(s, \pi(s)) = v_\pi(s)$
+        \item Follow this logic to the rest of the steps and you can assume its better for the whole trajectory
+        \item When improvement stops we have the condition: \\
+        $q_\pi(s,\pi'(s)) = max_{a \in A}q_\pi(a, s) = q_\pi(s, \pi(s)) = v_\pi(s)$
+        \item This then satisfies the Bellman Optimality Equation
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+
+\end{document}
