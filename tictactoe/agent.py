@@ -5,16 +5,64 @@ import numpy as np
 
 class Agent:
 
-    def __init__(self):
-        self.default_value = 0.0
-        self.state_values = defaultdict(lambda: self.default_value)
+    def __init__(self, board):
+        self.board = board
+        self.default_value = 0.5
+        self.state_values = {}
 
-    def temporal_difference_update(alpha=0.01):
+    def convert_state_to_key(self, state):
+        """Converts the given state into a tuple(tuple(int)) that
+        can be used as a key in state_values.
+
+        Parameters
+        ----------
+        state: np.array[np.array[int]]
+            The state of the board that we want to convert.
+
+        Returns
+        -------
+        key: tuple(tuple(int))
+            2D tuple that represents the state and can be used
+            as a key in a dictionary.
+        """
+        key = tuple(tuple(r) for r in state)
+        return key
+
+    def value_for_state(self, state):
+        """Looks up the current value of the given state by
+        first converting to the appropriate key and then
+        performing a lookup.
+
+        Parameters
+        ----------
+        state: np.array[np.array[int]]
+            The board state for which we want to lookup the
+            state value.
+
+        Returns
+        -------
+        : float
+            The value of the given state.
+        """
+
+        key = self.convert_state_to_key(state)
+        if key not in self.state_values:
+            game_value = self.board.end_of_game(state)
+            if game_value == 0:
+                self.state_values[key] = 0.5
+            elif game_value == 1:
+                self.state_values[key] = 1.0
+            else:
+                self.state_values[key] = 0.0
+
+        return self.state_values[key]
+
+    def temporal_difference_update(self, alpha=0.8):
         """Returns the temporal difference update given the current values of the states
 
         Parameters
         ----------
-        alpha: float, optional. Default: 0.01
+        alpha: float, optional. Default: 0.8
             learning rate of the temporal differece algorithm
 
         Return
@@ -52,13 +100,28 @@ class Agent:
             Updated state value for the start state
 
         """
-        return self.temporal_difference_update()(self.state_values[start_state], self.state_values[end_state])
+        return self.temporal_difference_update()(self.value_for_state(start_state), self.value_for_state(end_state))
+
+    def update_state_values(self, current_state, next_state):
+        """Updates the state_values using the given current_state
+        and next_state.
+
+        Parameters
+        ----------
+        current_state: np.array[np.array[int]]
+            The current state of the board where the agent is moving from.
+
+        next_state: np.array[np.array[int]]
+            The next state of the board where the agent is moving to.
+        """
+        self.state_values[self.convert_state_to_key(
+            current_state)] = self.calculate_value_update(current_state, next_state)
 
     def max_value_action(self, actions):
         """Returns the maximum value from a set of actions
         """
         action_state_values = np.array(
-            [self.state_values[a] for a in actions])
+            [self.value_for_state(a) for a in actions])
 
         return actions[np.argmax(action_state_values)]
 
@@ -84,10 +147,32 @@ class Agent:
              The potential actions to be taken
          """
 
-        return lambda board, actions: random.choices([random.choice(actions), self.max_value_action(actions)], weights=[epsilon, 1-epsilon])
+        return lambda board, actions: random.choices([random.choice(actions), self.max_value_action(actions)], weights=[epsilon, 1-epsilon])[0]
 
     def policy_selection(self, board_state, actions):
         # , policy_func=lambda: self.epsilon_greedy_policy()):
         """
         """
         return self.epsilon_greedy_policy()(board_state, actions)
+
+    def play_turn(self, current_state, next_states):
+        """Plays a single turn for the agent given the current_state
+        and potential next_states. This includes finding the optimal action to take
+        and then updating the appropriate state values.
+
+        Parameters
+        ----------
+        current_state: np.array[np.array[int]]
+            The current state of the board where the agent is moving from.
+
+        next_states: list[np.array[np.array[int]]]
+            The potential next states of the board where the agent can move to.
+
+        Returns
+        -------
+        next_state: np.array[np.array[int]]
+            The next state that the agent is choosing to move to.
+        """
+        next_state = self.policy_selection(current_state, next_states)
+        self.update_state_values(current_state, next_state)
+        return next_state
