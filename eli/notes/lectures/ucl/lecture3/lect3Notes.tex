@@ -1,0 +1,175 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,enumitem,amsmath,amssymb,graphicx}
+
+\newcommand{\ub}{\boldsymbol{u}}
+\newcommand{\vb}{\boldsymbol{v}}
+
+\begin{document}
+
+\begin{center}
+{\Large Reinforcement Learning David Silver: Lecture 3 Notes}
+
+\begin{tabular}{rl}
+Name: & Eli Andrew
+\end{tabular}
+\end{center}
+
+  \begin{itemize}
+    \item Dynamic programming
+    \begin{itemize}
+      \item Dynamic sequential or temporal component to the problem
+      \item Program as in the policy we are trying to optimize
+      \item Method for solving complex problems by breaking into subproblems
+      and then solving the subproblems and putting them together to arrive at a solution
+      \item Two necessary properties: (1) optimal substructure (problem can be broken into 
+      subproblems that can then be combined again) (2) overlapping subproblems (the subproblems
+      occur many times)
+      \item MDPs have these two properties 
+      \begin{itemize}
+        \item Recursive decomposition is given by the Bellman Equation
+        \item Subproblem value caching can be acheived with the value function
+        (stores all useful computed information about the MDP)
+      \end{itemize}
+      \item Assumes full knowledge of MDP and is used for planning
+      \item Can be used for prediction:
+      \begin{itemize}
+        \item Input: MDP $<S, A, P, R, \gamma>$ and a policy $\pi$
+        \item Output: value function $v_\pi$
+      \end{itemize}
+      \item Can also be used for control:
+      \begin{itemize}
+        \item Input: MDP $<S, A, P, R, \gamma>$ 
+        \item Output: optimal policy $\pi_*$ and optimal value function $v_*$
+      \end{itemize}
+    \end{itemize}
+    \item Policy evaluation
+    \begin{itemize}
+      \item This is when you are told the MDP and the policy and you want to calculate the
+      value of the policy $v_\pi$
+      \item General strategy: perform an iterative application of the Bellman expectation backup
+      \item Start with inital state values in $v_1$ and then apply Bellman expectation to get $v_2$
+      and continue to converge to $v_pi$
+      \item Using synchronous backups:
+      \begin{itemize}
+        \item At each iteration $k+1$
+        \item For all states $s \in S$:
+        \item Update $v_{k+1}(s)$ from $v_k(s')$ where $s'$ is a successor state of $s$
+        \item Where $v_{k+1}(s) = \sum_{a \in A}\pi(a | s) (R_{s}^a + \gamma \sum_{s' \in S}P_{ss'}^a v_{k}(s'))$
+      \end{itemize}
+    \end{itemize}
+    \item Policy iteration
+    \begin{itemize}
+      \item Goal is to find the best possible policy in the MDP vs. evaluating a fixed policy like
+      we did in policy evaluation
+      \item One way to look at this is given a policy $\pi$ how can we return a polciy $\pi'$ that is
+      better than $\pi$
+      \item So, given a policy $\pi$
+      \begin{itemize}
+        \item \textbf{Evaluate} the policy $\pi$: $v_\pi(s) = E[R_{t+1} + \gamma R_{t+2} + \dots | S_t = s]$
+        \item \textbf{Improve} the policy by acting greedily with respect to $v_\pi$: $\pi' = greedy(v_\pi)$
+      \end{itemize}
+      \item Policy iteration always converges to the optimal policy $\pi_*$
+      \item On each iteration of this we generate a value function $v_\pi$ which we act greedily on to get some
+      new policy $\pi'$, which on the next iteration gives a new value function $v_{\pi'}$ and then a new policy
+      $\pi''$ and so on and so on until we obtain $v_*$ and $\pi_*$
+      \item Put another way:
+      \begin{itemize}
+        \item Consider a deterministic policy: $a = \pi(s)$
+        \item We can improve the policy by acting greedily: $\pi'(s) = argmax_{a \in A}q_\pi(s, a)$
+        \item Acting greedily at least improves value for a single step: 
+        $q_\pi(s, \pi'(s)) = max_{a \in A}q_\pi(s,a) \ge q_\pi(s, \pi(s)) = v_\pi(s)$
+        \item Follow this logic to the rest of the steps and you can assume its better for the whole trajectory
+        \item When improvement stops we have the condition: \\
+        $q_\pi(s,\pi'(s)) = max_{a \in A}q_\pi(a, s) = q_\pi(s, \pi(s)) = v_\pi(s)$
+        \item This then satisfies the Bellman Optimality Equation
+      \end{itemize}
+    \end{itemize}
+    \item Any optimal policy can be broken into two pieces: (1) an optimal first action $A_*$, and (2)
+    an optimal policy from the successor state $S'$
+    \item Therefore a policy is optimal if the policy from all states we can reach from the current state is optimal.
+    \item If we assume we know $v_*(s')$ then we can find $v_*(s') = max_{a \in A}R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_*(s')$
+    \item The idea of value iteration is to start at the leaves with this assumption and then
+    iteratively work your way back to arrive at the root
+    \item Value iteration
+    \begin{itemize}
+      \item Intuition: start with final rewards and work backwards
+      \item Still works with cyclic, stochastic MDPs 
+      \item Important to note that this final rewards intuition is just intution.
+      In practice all states are being updated on all iterations.
+      \item Problem: find optimal policy $\pi$
+      \item Solution: iterative application of Bellman optimality backup
+      \item $v_1 \dots v_2 \dots v_*$
+      \item Using synchronous backups:
+      \begin{itemize}
+        \item At each iteration $k+1$
+        \item For all states $s \in S$
+        \item Update $v_{k+1}(s)$ from $v_k(s')$
+        \item $v_{k+1}(s) = max_{a \in A}(R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_{k}(s'))$
+      \end{itemize}
+      \item Unlike in policy iteration there is no explicit policy here
+      \item Intermediate value functions may in fact not be achieveable by any particular policy
+    \end{itemize}
+    \item Overview:
+    \begin{itemize}
+      \item In all these problems were given the MDP and its dynamics and we are trying to plan
+      \item \textbf{Problem:} Prediction, \textbf{Bellman Equation:} Bellman expectation, \textbf{Algorithm:} Iterative policy evaluation
+      \item \textbf{Problem:} Control, \textbf{Bellman Equation:} Bellman expectation + greedy policy improvement, \textbf{Algorithm:} Policy improvement 
+      \item \textbf{Problem:} Control, \textbf{Bellman Equation:} Bellman optimality, \textbf{Algorithm:} Value iteration
+    \end{itemize}
+    \item All algorithms are based on state-value functions $v_\pi(s)$ or $v_*(s)$
+    \item Complexity $O(mn^2)$ per iteration, for $m$ actions and $n$ states
+    \item Could also apply action-value function $q_\pi(s,a)$ or $q_*(s,a)$
+    \item Complexity $O(m^2n^2)$ per iteration
+    \item Extensions to DP:
+    \begin{itemize}
+      \item DP methods so far used \textit{synchronous} backups
+      \item i.e. all states are backed up in parallel
+      \item Asynchronous DP backs up states individually, in any order
+      \item For each selected state, apply the appropriate backup
+      \item Can significantly reduce computation
+      \item Guaranteed to converge if all states continue to be selected
+    \end{itemize}
+    \item Asynchronous DP methods
+    \begin{itemize}
+      \item In-place DP
+      \item Prioritized sweeping
+      \item Real-time dynamic programming
+    \end{itemize}
+    \item In-place DP just stores a single state value for each state
+    rather than storing the old value and the updated value. It just overwrites
+    the old value with the new one. This causes subsequent updates that rely on 
+    the state value of that state to use the updated value rather than the old value
+    but that is ok and can even help as it is essentially propagating information faster
+    to other states. This brings into question how to pick the order to update states.
+    \item Prioritized sweeping is born from the value gained by selecting the order of states
+    updated in in-place DP.
+    \begin{itemize}
+      \item Use the magnitude of Bellman error to guide selection: \\
+      $\vert max_{a \in A}(R_s^a + \gamma \sum_{s' \in s}P_{ss'}^a v(s')) - v(s)\vert$
+      \item Backup the state with the largest remaining Bellman error
+      \item Update Bellman error of affected states after each backup
+      \item Requires knowledge of reverse dynamics (predecessor states)
+      \item Can be implemented efficiently by maintaining a priority queue
+    \end{itemize}
+    \item Real-time dynamic programming
+    \begin{itemize}
+      \item Idea: only states that are relevant to agent
+      \item Uses agent's experience to guide selection of states
+      \item After each time step $S_t, A_t, R_{t+1}$
+      \item Backup the state $S_t$
+      \item You are updating the states that the agent is actually visiting in the real world
+      \item $v_{S_t} = max_{a \in A}(R_{S_t}^a + \gamma \sum_{s' \in S}P_{ss'}^a v(s'))$
+    \end{itemize}
+    \item DP uses full-width backups
+    \item For each backup (sync or async): \\
+    (1) every successor state and action is considered \\
+    (2) Using knowledge of MDP transitions and rewards
+    \item DP is effective for medium-sized problems (millions of states)
+    \item For large problems DP suffers from curse of dimensionality due to its states
+    \item Number of states $n = \vert S \vert$ grows exponentially with number of state
+    variables
+    \item Even a single backup is too expensive in large problems
+    \item Solution is to sample the MDP and perform updates just for that single sample
+  \end{itemize}
+
+\end{document}
