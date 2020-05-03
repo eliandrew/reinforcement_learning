@@ -23,6 +23,8 @@ class Board:
         self.reset_board()
 
     def reset_board(self):
+        """Resets the board and the player who's turn it is to the inital values for a new game
+        """
         self.current_player = 1
         self.board_space = np.zeros((self.dim, self.dim), dtype=int)
 

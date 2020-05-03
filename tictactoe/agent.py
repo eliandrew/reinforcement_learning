@@ -1,14 +1,30 @@
 from collections import defaultdict
 import random
+import datetime
 import numpy as np
 
 
 class Agent:
+    """Represents the agent playing the tic-tac-toe game. This includes: playing a turn,
+        updating the values for the states, and executing the policy.
+
+        Attributes
+        ----------
+        board: np.array[np.array[]]
+            Representation of the board for the agent to reference
+
+        default_value: float
+            Parameter to initialize the states values of moves that do not result in termination of the game
+
+        state_values: dict[tuple(tuple(int)), float]
+            Initial representation of the state values to be added to and adjusted over time as new states are experienced
+    """
 
     def __init__(self, board):
         self.board = board
         self.default_value = 0.5
         self.state_values = {}
+        random.seed(datetime.datetime.now().microsecond)
 
     def convert_state_to_key(self, state):
         """Converts the given state into a tuple(tuple(int)) that
@@ -125,7 +141,7 @@ class Agent:
 
         return actions[np.argmax(action_state_values)]
 
-    def epsilon_greedy_policy(self, epsilon=0.01):
+    def epsilon_greedy_policy(self, epsilon=0.5):
         """Returns the epsilon greedy algorithm given the epsilon value
 
          Parameters
@@ -147,11 +163,19 @@ class Agent:
              The potential actions to be taken
          """
 
-        return lambda board, actions: random.choices([random.choice(actions), self.max_value_action(actions)], weights=[epsilon, 1-epsilon])[0]
+        random_choice_weights = []
+        [random_choice_weights.append(1/(len(actions))) for i in len(actions)]
+        random_choices = (random.choices(
+            [actions], weights=random_choice_weights))
+        return lambda board, actions: random.choices([[random_choices], self.max_value_action(actions)], weights=[epsilon, 1-epsilon])[0]
 
     def policy_selection(self, board_state, actions):
         # , policy_func=lambda: self.epsilon_greedy_policy()):
-        """
+        """Selects the policy to adhere to based on the current board and the possible actions
+
+        Returns
+        -------
+        :
         """
         return self.epsilon_greedy_policy()(board_state, actions)
 
