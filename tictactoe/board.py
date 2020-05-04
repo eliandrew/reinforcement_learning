@@ -74,6 +74,9 @@ class Board:
             (row_slices, col_slices, [diag_slices_one], [diag_slices_two]))
         return board_slices
 
+    def tie_game(self, board):
+        return False if 0 in board else True
+
     def end_of_game(self, board):
         """Determines if the game is over whether by tie or there is a winner
 

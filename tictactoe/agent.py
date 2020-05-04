@@ -1,6 +1,5 @@
 from collections import defaultdict
 import random
-import datetime
 import numpy as np
 
 
@@ -20,11 +19,12 @@ class Agent:
             Initial representation of the state values to be added to and adjusted over time as new states are experienced
     """
 
-    def __init__(self, board):
+    def __init__(self, board, marker):
         self.board = board
         self.default_value = 0.5
         self.state_values = {}
-        random.seed(datetime.datetime.now().microsecond)
+        self.epsilon = 0.8
+        self.marker = marker
 
     def convert_state_to_key(self, state):
         """Converts the given state into a tuple(tuple(int)) that
@@ -66,7 +66,7 @@ class Agent:
             game_value = self.board.end_of_game(state)
             if game_value == 0:
                 self.state_values[key] = 0.5
-            elif game_value == 1:
+            elif game_value == self.marker:
                 self.state_values[key] = 1.0
             else:
                 self.state_values[key] = 0.0
@@ -139,9 +139,14 @@ class Agent:
         action_state_values = np.array(
             [self.value_for_state(a) for a in actions])
 
-        return actions[np.argmax(action_state_values)]
+        max_selections = np.where(
+            action_state_values == np.max(action_state_values))[0]
+        selected_action = np.random.choice(max_selections)
+        # # print("Max Selection: {}\nSelected Action: {}\n\n".format(
+        #     max_selections, selected_action))
+        return actions[selected_action]
 
-    def epsilon_greedy_policy(self, epsilon=0.5):
+    def epsilon_greedy_policy(self, board, actions):
         """Returns the epsilon greedy algorithm given the epsilon value
 
          Parameters
@@ -151,23 +156,18 @@ class Agent:
 
          Return
          ------
-         : function(np.array[np.array[int]], np.array[np.array[int]])
-             A function where the frequency of the highest valued option is returned with
-             a 1-epsilon frequency, and a random choice among the other options is returned
-             with an epsilon frequency
 
-         board: np.array[np.array[int]]
-             The current state of the board
-
-         states: np.array[np.array[int]]
-             The potential actions to be taken
          """
 
-        random_choice_weights = []
-        [random_choice_weights.append(1/(len(actions))) for i in len(actions)]
+        random_choice_weights = [(1/(len(actions)))
+                                 for i in range(len(actions))]
         random_choices = (random.choices(
-            [actions], weights=random_choice_weights))
-        return lambda board, actions: random.choices([[random_choices], self.max_value_action(actions)], weights=[epsilon, 1-epsilon])[0]
+            actions, weights=random_choice_weights))[0]
+        action_random = random.choices([random_choices, self.max_value_action(
+            actions)], weights=[self.epsilon, 1-self.epsilon])[0]
+        # print("Action selected: {}\nGreedy Action: {}\n\n".format(
+        #     action_random, self.max_value_action(actions)))
+        return action_random
 
     def policy_selection(self, board_state, actions):
         # , policy_func=lambda: self.epsilon_greedy_policy()):
@@ -177,7 +177,7 @@ class Agent:
         -------
         :
         """
-        return self.epsilon_greedy_policy()(board_state, actions)
+        return self.epsilon_greedy_policy(board_state, actions)
 
     def play_turn(self, current_state, next_states):
         """Plays a single turn for the agent given the current_state
