@@ -17,6 +17,208 @@ Name: & Eli Andrew
   \begin{itemize}
     \item Model-free prediction is the same case as before except that now no one is giving
     us the MDP. 
+    \item Model-free prediction methods go directly from environment interactions (observations)
+    to value-functions without the use of a model (MDP).
+    \item In other words, we are trying to estimate the value function of an \textit{unknown} MDP.
+    \item \textbf{Monte-Carlo Learning Overview:}
+    \begin{itemize}
+      \item MC methods learn directly from episodes of experience
+      \item MC is \textit{model-free}: no knowledge of MDP transitions or rewards
+      \item MC learns on complete episodes: no bootstrapping
+      \item MC uses simplest possible idea: value = mean return
+      \item Caveat: can only apply MC to episodic MDPs (all episodes must terminate)
+    \end{itemize}
+    \item \textbf{Monte-Carlo Learning Details:}
+    \begin{itemize}
+      \item Goal: learn $v_\pi$ from episodes of experience under policy $\pi$ ($S_1, A_1, R_2, \dots, S_k ~ \pi$)
+      \item Recall that return is the total discounted reward: $G_t = R_{t+1} + \gamma R_{t+2} + \dots + \gamma^{T - 1}R_{T}$
+      \item Recall that the value function is the expected return: $v_\pi(s) = E\pi[G_t | S_t = s]$ 
+      \item MC policy evaluation uses \textit{empirical mean return} instead of expected return.
+    \end{itemize}
+    \item \textbf{First-visit Monte-Carlo Policy Evaluation:}
+    \begin{itemize}
+      \item To evaluation state $s$
+      \item The \textit{first} time-step $t$ that state $s$ is visited in an episode
+      \item Increment counter $N(s) \leftarrow N(s) + 1$
+      \item Increment total return $S(s) \leftarrow S(s) + G_t$
+      \item Value is estimated by mean return $V(s) = \frac{S(s)}{N(s)}$
+      \item By law of large numbers, $V(s) \rightarrow v_\pi(s)$ as $N(s) \rightarrow \infty$
+      \item \textit{Note:} $N(s)$ and $S(s)$ persist over all episodes
+      \item \textbf{Important:} what we care about here is ensuring that we visit all states in $S$
+      that we care about for policy $\pi$ and not necessarily seeing all states. The way to ensure that
+      we see all states that we care about for policy $\pi$ is to actually just follow policy $\pi$ and work
+      with the samples of $S$ that it gives us.
+    \end{itemize}
+    \item \textbf{Every-visit Monte-Carlo Policy Evalutation:}
+    \begin{itemize}
+      \item To evaluation state $s$
+      \item \textit{Every} time-step $t$ that state $s$ is visited in an episode
+      \item Increment counter $N(s) \leftarrow N(s) + 1$
+      \item Increment total return $S(s) \leftarrow S(s) + G_t$
+      \item Value is estimated by mean return $V(s) = \frac{S(s)}{N(s)}$
+      \item Again, $V(s) \rightarrow v_\pi(s)$ as $N(s) \rightarrow \infty$
+    \end{itemize}
+    \item \textbf{Incremental Mean}
+    \begin{itemize}
+      \item The mean $\mu_1, \mu_2, \dots$ of a sequence $x_1, x_2, \dots$
+      can be computed incrementally
+      \item $\mu_k = \frac{1}{k}\sum_{j=1}^{k}x_j$
+      \item $\mu_k = \frac{1}{k}(x_k + \sum_{j=1}^{k-1}x_j)$
+      \item $\mu_k = \frac{1}{k}(x_k + (k-1)\mu_{k-1})$
+      \item $\mu_k = \mu_{k-1} + \frac{1}{k}(x_k - \mu_{k-1})$
+      \item This final equation can be thought of as taking the old mean $\mu_{k-1}$ and
+      taking a small step with size $\frac{1}{k}$ towards the value we just saw $(x_k - \mu_{k-1})$
+    \end{itemize}
+    \item \textbf{Incremental Monte-Carlo Updates:}
+    \begin{itemize}
+      \item Update $V(s)$ incrementally after each episode $S_1, A_1, R_2, \dots, S_T$
+      \item For each state $S_t$ with return $G_t$:
+      \item $N(S_t) \leftarrow N(S_t) + 1$
+      \item $V(S_t) \leftarrow V(S_t) + \frac{1}{N(S_t)}(G_t - V(S_t))$
+      \item In non-stationary problems it can be useful to track a running mean,
+      i.e. to forget old episodes: $V(S_t) \leftarrow V(S_t) + \alpha(G_t - V(S_t))$
+    \end{itemize}
+    \item \textbf{Temporal-Difference Learning Overview:}
+    \begin{itemize}
+      \item TD methods learn directly from episodes of experience
+      \item TD is \textit{model-free}: no knowledge of MDP transitions or rewards
+      \item TD learns from \textit{incomplete} episodes, by bootstrapping
+      This is in contrast to MC which must use full episodes.
+      \item Instead of taking complete episodes to determine rewards, TD can take partial
+      episodes and then use estimates to guess what the reward for the rest of the episode would be.
+      \item TD updates a guess towards a guess
+    \end{itemize}
+    \item \textbf{MC and TD:}
+    \begin{itemize}
+      \item Goal: learn $v_\pi$ online from experience under policy $\pi$
+      \item Incremental every-visit Monte-Carlo
+      \begin{itemize}
+        \item Update value $V(S_t)$ toward actual return $G_t$:
+        $V(S_t) \leftarrow V(S_t) + \alpha(G_t - V(S_t))$
+      \end{itemize}
+      \item Simplest temporal-difference learning algorithm: TD(0)
+      \begin{itemize}
+        \item Update value $V(S_t)$ toward estimated return $R_{t+1} + \gamma V(S_{t+1})$:
+        \item $V(S_t) \leftarrow V(S_t) + \alpha((R_{t+1} + \gamma V(S_{t+1}) - V(S_t)))$
+        \item $R_{t+1} + \gamma V(S_{t+1})$ is called the TD \textit{target}
+        \item $\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$ is called the TD \textit{error}
+      \end{itemize}
+      \item At each step of TD you are updating your estimate of what you thought would happen
+      with what did happen.
+      \item With MC you update each step by correcting based on what happened with the entire episode
+      rather than with just that step.
+    \end{itemize}
+    \item \textbf{Advantages and Disadvantages of MC vs. TD:}
+    \begin{itemize}
+      \item TD can learn \textit{before} knowing the final outcome
+      \begin{itemize}
+        \item TD can learn online every step
+        \item MC must wait until end of episode before return is known
+      \end{itemize}
+      \item TD can learn \textit{without} the final outcome
+      \begin{itemize}
+        \item TD can learn from incomplete sequences
+        \item MC can only learn from complete sequences
+        \item TD works in continuing (non-terminating) environments
+        \item MC only works for episodic (terminating) environments
+      \end{itemize}
+    \end{itemize}
+    \item \textbf{Bias/Variance Trade-Off:}
+    \begin{itemize}
+      \item Return $G_t = R_{t+1} + \gamma R_{t+2} + \dots + \gamma^{T-1}R_T$ is
+      \textit{unbiased} estimate of $v_\pi(S_t)$
+      \item True TD target $R_{t+1} + \gamma v_\pi(S_{t+1})$ is \textit{unbiased} 
+      estimate of $v_\pi(S_t)$
+      \item TD target $R_{t+1} + \gamma V(S_{t+1})$ is \textit{biased} estimate
+      of $v_\pi(S_t)$
+      \item TD target is much lower variance than the return:
+      \begin{itemize}
+        \item Return depends on many random actions, transitions, rewards
+        \item TD target depends on one random action, transition, reward
+        \item In other words, we are only subject to the noise from the single step with the TD target
+        vs. from the entire trajectory with the return
+      \end{itemize}
+    \end{itemize}
+    \item \textbf{Continued Advantages and Disadvantages of MC vs. TD:}
+    \begin{itemize}
+      \item MC has high variance and zero bias
+      \begin{itemize}
+        \item Good convergence properties
+        \item (even with function approximation)
+        \item Not very sensitive to initial value
+        \item Very simple to understand and use
+      \end{itemize}
+      \item TD has low variance, some bias
+      \begin{itemize}
+        \item Usually more efficient than MC
+        \item TD(0) converges to $v_\pi(s)$
+        \item (but not always with function approximation)
+        \item More sensitive to initial value
+      \end{itemize}
+      \item \textbf{Certainty Equivalence:}
+      \begin{itemize}
+        \item MC converges to solution that minimizes mean-squared-error
+        \item This is the best fit to all observed returns
+        \item TD(0) converges to solution of MDP that best explains the data
+        \item Think of this as first fitting for an MDP and then solving for the MDP
+      \end{itemize}
+      \item TD exploits the Markov property - is usually more efficient in Markov environments
+      \item MC does not exploit Markov property and is usually more efficient in non-Markov environments
+      \item \textbf{Bootstrapping:}
+      \begin{itemize}
+        \item Update involves an estimate
+        \item MC does not bootstrap
+        \item DP bootstraps
+        \item TD bootstraps
+      \end{itemize}
+      \item \textbf{Sampling:}
+      \begin{itemize}
+        \item Update samples an expectation
+        \item MC samples
+        \item DP does not sample
+        \item TD does sample
+      \end{itemize}
+      \item \textbf{TD($\lambda$):}
+      \begin{itemize}
+        \item Let TD look $n$ steps into the future before deciding how to update
+        \item $n = \infty$ is Monte-Carlo
+        \item Recall, TD (n = 1) has update $V(S_t) \leftarrow V(S_t) + \alpha((R_{t+1} + \gamma V(S_{t+1})) - V(S_t))$ 
+        \item n = 2: $V(S_t) \leftarrow V(S_t) + \alpha((R_{t+1} + \gamma R_{t+2} + \gamma^2V(S_{t+3}) - V(S_t))$
+        \item Define $G^{(n)}_t = R_{t+1} + \gamma R_{t+2} + \dots + \gamma^{n-1}R_{t+n} + \gamma^nV(S_{t + n})$
+        \item Then $n$-step TD learning updates with $V(S_t) \leftarrow V(S_t) + \alpha(G^{(n)}_t - V(S_t))$
+        \item We can average $n$-step returns over different $n$
+        \item e.g. average 2-step and 4-step returns: $\frac{1}{2}G^{(2)} + \frac{1}{2}G^{(4)}$
+        \item This combines information from two different time-steps
+        \item Doing this across all $n$ gives $\lambda$-return which is like a geometrically weighted average
+        across all n
+        \item $G^{\lambda}_t = (1 - \lambda)\sum_{n = 1}^{\infty}\lambda^{n-1}G^{(n)}_t$
+        \item $\lambda$ is giving the weight for each successive $n$
+        \item The weighting for a given $n$ is $(1-\lambda)\lambda^{n-1}$
+        \item Now use this for TD learning update: $V(S_t) \leftarrow V(S_t) + \alpha(G_t^\lambda - V(S_t))$
+      \end{itemize}
+      \item \textbf{Eligibility Traces:}
+      \begin{itemize}
+        \item Combine frequency and recency heuristics to solve problem of assigning
+        credit to the right factor
+        \item $E_0(s) = 0$, $E_t(s) = \gamma \lambda E_{t-1}(s) +$ \textbf{1}$(S_t = s)$
+      \end{itemize}
+      \item \textbf{Backward View TD($\lambda$):}
+      \begin{itemize}
+        \item Keep eligibility trace for every state $s$
+        \item Update value $V(s)$ for every state $s$
+        \item In proportion to TD-error $\delta_t$ and eligibility trace $E_t(s)$
+        \item $\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$
+        \item $V(s) \leftarrow V(s) + \alpha\delta_tE_t(s)$
+      \end{itemize}
+      \item \textbf{TD($\lambda$) and TD(0):}
+      \begin{itemize}
+        \item When $\lambda = 0$, only current state is updated \\
+        $E_t(s) = $\textbf{1}$(S_t = s)$ \\
+        $V(s) \leftarrow V(s) + \alpha\delta_tE_t(s)$
+        \item This is exactly equivalent to TD(0) update
+
+      \end{itemize}
+    \end{itemize}
   \end{itemize}
 
 
