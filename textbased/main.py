@@ -2,7 +2,10 @@ import gym
 import utils
 import time
 
-env_selection = input("Choose environement:\n(1)Taxi\n(2)FrozenLake\n")
+from lake_envs import *
+
+env_selection = input(
+    "Choose environment:\n(1)Taxi\n(2)FrozenLake 4x4 Deterministic\n(3)FrozenLake 4x4 Stochastic\n(4)FrozenLake 8x8 Deterministic\n(5)FrozenLake 8x8 Stochastic\n")
 
 name = "Taxi-v3"
 n = 100
@@ -12,10 +15,26 @@ if int(env_selection) == 1:
     name = "Taxi-v3"
     n = 100
     m = 5
+
 elif int(env_selection) == 2:
-    name = "FrozenLake-v0"
+    name = "Deterministic-4x4-FrozenLake-v0"
     n = 4
     m = 4
+
+elif int(env_selection) == 3:
+    name = "Deterministic-8x8-FrozenLake-v0"
+    n = 8
+    m = 8
+
+elif int(env_selection) == 4:
+    name = "Stochastic-4x4-FrozenLake-v0"
+    n = 4
+    m = 4
+
+elif int(env_selection) == 5:
+    name = "Stochastic-8x8-FrozenLake-v0"
+    n = 8
+    m = 8
 
 env = gym.make(name)
 
@@ -35,6 +54,8 @@ pi_opt = utils.greedy_policy(env.P, v_opt)
 print("Policy:\n")
 pi_values = [pi_opt[s] for s in pi_opt]
 utils.display_values(pi_values, n, m)
+
+input("Press enter to start simulation\n")
 
 for e in range(int(n_episodes)):
     episode_reward = 0
