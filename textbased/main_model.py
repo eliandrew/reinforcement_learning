@@ -1,5 +1,5 @@
 import gym
-import utils
+import utils_model
 import time
 
 from lake_envs import *

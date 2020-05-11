@@ -79,7 +79,7 @@ def value_iteration(P, gamma=1.0, delta=0.001):
 
     print("Finished value iteration in {} time steps.".format(k))
 
-    return v_k
+    return v_opt
 
 
 def value_iteration_step(P, s, v_k, gamma=1.0):
