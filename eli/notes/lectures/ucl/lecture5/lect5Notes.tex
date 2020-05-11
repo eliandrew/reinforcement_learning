@@ -1,0 +1,44 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,enumitem,amsmath,amssymb,graphicx}
+
+\newcommand{\ub}{\boldsymbol{u}}
+\newcommand{\vb}{\boldsymbol{v}}
+
+\begin{document}
+
+\begin{center}
+{\Large Reinforcement Learning David Silver - Lecture 5 Notes: Model-Free Control}
+
+\begin{tabular}{rl}
+Name: & Eli Andrew
+\end{tabular}
+\end{center}
+
+  \begin{itemize}
+    \item \textbf{MC Learning On Policy}
+    \item \textbf{MC Learning Off Policy}
+    \item \textbf{TD Learning On Policy}
+      \begin{itemize}
+        \item \textbf{SARSA}
+        \begin{itemize}
+          \item Act $\epsilon$-greedy with respect to current $Q$ on every iteration
+          \item $Q(S, A) \leftarrow Q(S, A) + \alpha(R + \gamma Q(S', A') - Q(S, A))$
+        \end{itemize}
+      \end{itemize}
+    \item \textbf{TD Learning Off Policy}
+    \begin{itemize}
+      \item \textbf{Q-learning}
+      \begin{itemize}
+        \item No importance sampling required
+        \item Next action chosen according to behavior policy: $A_{t+1} ~ \mu(. | S_t)$
+        \item But we consider successor action $A'$ according to target policy: $A' ~ \pi(. | S_t)$
+        \item And update $Q(S_t, A_t)$ towards value of alternative action
+        \item $Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha(R_{t+1} + \gamma Q(S_{t+1}, A') - Q(S_t, A_t))$
+      \end{itemize}
+    \end{itemize}
+    \item \textbf{N-step Learning On Policy}
+    \item \textbf{N-step Learning Off Policy}
+  \end{itemize} 
+
+
+\end{document}
