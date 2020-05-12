@@ -1,11 +1,13 @@
 import gym
 import utils_model_free
+import utils
+import utils_model
 import time
 
 from lake_envs import *
 
 env_selection = input(
-    "Choose environment:\n(1)Taxi\n(2)FrozenLake 4x4 Deterministic\n(3)FrozenLake 4x4 Stochastic\n(4)FrozenLake 8x8 Deterministic\n(5)FrozenLake 8x8 Stochastic\n")
+    "Choose environment:\n(1)Taxi\n(2)FrozenLake 4x4 Deterministic\n(3)FrozenLake 8x8 Deterministic\n(4)FrozenLake 4x4 Stochastic\n(5)FrozenLake 8x8 Stochastic\n")
 
 name = "Taxi-v3"
 n = 100
@@ -47,7 +49,15 @@ should_render = should_render == "y"
 
 pi = utils_model_free.initial_pi(env)
 
-q_opt, pi_opt = utils_model_free.monte_carlo_control(pi, env, int(n_episodes))
+q_opt, pi_opt = utils_model_free.monte_carlo_control(
+    pi, env, int(n_episodes), False)
+
+v_pi = utils_model.value_iteration(env.P, 0.9)
+
+q_v_pi = utils.state_values_to_action_values(v_pi, env)
+
+print("State action values: {}\n".format(q_opt))
+print("State action values from q: {}\n".format(q_v_pi))
 
 input("Press enter to start simulation\n")
 

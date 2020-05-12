@@ -1,5 +1,6 @@
 import numpy as np
 from collections import defaultdict
+import time
 
 
 def epsilon_greedy(q_k, env, epsilon=0.01):
@@ -15,7 +16,7 @@ def epsilon_greedy(q_k, env, epsilon=0.01):
     return pi
 
 
-def monte_carlo_control(pi, env, n):
+def monte_carlo_control(pi, env, n, render=False):
     """
     This takes a policy and performs the monte carlo update
     """
@@ -23,7 +24,9 @@ def monte_carlo_control(pi, env, n):
     epsilon = 1.0
 
     for i in range(n):
-        G, N = monte_carlo_episode(q_pi, pi, env)
+        if i % 100 == 0:
+            print("Finished {} episodes".format(i))
+        G, N = monte_carlo_episode(pi, env, 1.0, render)
         q_pi = monte_carlo_step(q_pi, N, G)
         pi = epsilon_greedy(q_pi, env, epsilon)
         epsilon = epsilon*(1.0-float(i)/float(n))
@@ -31,7 +34,7 @@ def monte_carlo_control(pi, env, n):
     return q_pi, pi
 
 
-def monte_carlo_episode(q_k, pi, env, gamma=1.0):
+def monte_carlo_episode(pi, env, gamma=1.0, render=False):
     """
     From the given policy, this takes a sample of the environment's State-Action pairs
     """
@@ -41,6 +44,9 @@ def monte_carlo_episode(q_k, pi, env, gamma=1.0):
 
     s = env.reset()
     while not done:
+        if render:
+            env.render()
+            time.sleep(0.25)
         a = pi(s)
         s_prime, r, done, _ = env.step(a)
         G += gamma**k * r
@@ -64,16 +70,9 @@ def monte_carlo_step(q_k, N, G, alpha=0.01):
     for s in N:
         for a in N[s]:
             if N[s][a] > 0:
-                q_pi[s][a] += alpha*(G-q_k[s][a])
+                q_pi[s][a] += alpha*(G-q_pi[s][a])
 
     return q_pi
-
-
-def display_values(v, n, m):
-    """Displays the values in v on an nxm grid.
-    """
-    grid = np.array([v[s] for s in v]).reshape(n, m)
-    print(grid)
 
 
 def initial_pi(env):
