@@ -3,33 +3,35 @@ from collections import defaultdict
 import time
 
 
-def epsilon_greedy(q_k, env, epsilon=0.01):
+def epsilon_greedy(q_k, env, N_total):
     """
     From Q values generated, return a stochastic epsilon greedy policy
     """
-
     def pi(s):
         a = env.action_space.sample()
+        epsilon = 1.0/(float(N_total[s][a])+1)
         best = max(q_k[s], key=q_k[s].get) if len(q_k[s]) > 0 else a
         return np.random.choice([a, best], p=[epsilon, 1-epsilon])
 
     return pi
 
 
-def monte_carlo_control(pi, env, n, render=False):
+def monte_carlo_control(pi, env, n, gamma=1.0, render=False):
     """
     This takes a policy and performs the monte carlo update
     """
     q_pi = defaultdict(lambda: defaultdict(float))
-    epsilon = 1.0
+    N_total = defaultdict(lambda: defaultdict(int))
 
     for i in range(n):
         if i % 100 == 0:
             print("Finished {} episodes".format(i))
-        G, N = monte_carlo_episode(pi, env, 1.0, render)
+        G, N = monte_carlo_episode(pi, env, gamma, render)
         q_pi = monte_carlo_step(q_pi, N, G)
-        pi = epsilon_greedy(q_pi, env, epsilon)
-        epsilon = epsilon*(1.0-float(i)/float(n))
+        for s in N:
+            for a in N[s]:
+                N_total[s][a] += N[s][a]
+        pi = epsilon_greedy(q_pi, env, N_total)
 
     return q_pi, pi
 
@@ -40,10 +42,11 @@ def monte_carlo_episode(pi, env, gamma=1.0, render=False):
     """
     G, k = 0, 0
     N = defaultdict(lambda: defaultdict(int))
+
     done = False
 
     s = env.reset()
-    while not done:
+    while not done and k < 500:
         if render:
             env.render()
             time.sleep(0.25)
@@ -70,7 +73,7 @@ def monte_carlo_step(q_k, N, G, alpha=0.01):
     for s in N:
         for a in N[s]:
             if N[s][a] > 0:
-                q_pi[s][a] += alpha*(G-q_pi[s][a])
+                q_pi[s][a] += (1/N[s][a])*(G-q_pi[s][a])
 
     return q_pi
 

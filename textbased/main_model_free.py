@@ -50,7 +50,7 @@ should_render = should_render == "y"
 pi = utils_model_free.initial_pi(env)
 
 q_opt, pi_opt = utils_model_free.monte_carlo_control(
-    pi, env, int(n_episodes), False)
+    pi, env, int(n_episodes), 1.0, False)
 
 v_pi = utils_model.value_iteration(env.P, 0.9)
 
