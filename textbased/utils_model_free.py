@@ -31,6 +31,9 @@ def sarsa(env, pi, nE, alpha=0.01, gamma=1.0, epsilon_0=1.0, debug=False, render
         epsilon = (epsilon_0 - min_epsilon) * \
             (1.0 - float(e + 1) / float(nE)) + min_epsilon
         while not done:
+            if render:
+                env.render()
+                time.sleep(0.25)
             s_prime, r, done, _ = env.step(a)
             a_prime = pi(s_prime)
 
