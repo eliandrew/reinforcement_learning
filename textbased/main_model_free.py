@@ -1,11 +1,13 @@
 import gym
+import utils_model_free
 import utils
+import utils_model
 import time
 
 from lake_envs import *
 
 env_selection = input(
-    "Choose environment:\n(1)Taxi\n(2)FrozenLake 4x4 Deterministic\n(3)FrozenLake 4x4 Stochastic\n(4)FrozenLake 8x8 Deterministic\n(5)FrozenLake 8x8 Stochastic\n")
+    "Choose environment:\n(1)Taxi\n(2)FrozenLake 4x4 Deterministic\n(3)FrozenLake 8x8 Deterministic\n(4)FrozenLake 4x4 Stochastic\n(5)FrozenLake 8x8 Stochastic\n")
 
 name = "Taxi-v3"
 n = 100
@@ -41,23 +43,25 @@ env = gym.make(name)
 total_reward = 0
 
 n_episodes = input("Num Episodes: ")
+n_episodes_watch = input("Num of episodes to watch: ")
 should_render = input("Render (y/n): ")
 should_render = should_render == "y"
 
-v_opt = utils.value_iteration(env.P, gamma=0.9, delta=0.001)
+pi = utils_model_free.initial_pi(env)
 
-print("Value Function:\n")
-utils.display_values(v_opt, n, m)
+q_opt, pi_opt = utils_model_free.monte_carlo_control(
+    pi, env, int(n_episodes), 1.0, False)
 
-pi_opt = utils.greedy_policy(env.P, v_opt)
+v_pi = utils_model.value_iteration(env.P, 0.9)
 
-print("Policy:\n")
-pi_values = [pi_opt[s] for s in pi_opt]
-utils.display_values(pi_values, n, m)
+q_v_pi = utils.state_values_to_action_values(v_pi, env)
+
+print("State action values: {}\n".format(q_opt))
+print("State action values from q: {}\n".format(q_v_pi))
 
 input("Press enter to start simulation\n")
 
-for e in range(int(n_episodes)):
+for e in range(int(n_episodes_watch)):
     episode_reward = 0
     t = 0
     done = False
@@ -66,7 +70,7 @@ for e in range(int(n_episodes)):
         if should_render:
             env.render()
             time.sleep(0.25)
-        (s_prime, r, done, _) = env.step(pi_opt[s])
+        (s_prime, r, done, _) = env.step(pi_opt(s))
         episode_reward += r
         s = s_prime
         t += 1
@@ -76,4 +80,4 @@ for e in range(int(n_episodes)):
         e, t, episode_reward))
 
 print("Completed {} episodes with {} average reward and {} total reward".format(
-    int(n_episodes), total_reward / float(n_episodes), total_reward))
+    int(n_episodes_watch), total_reward / float(n_episodes_watch), total_reward))
