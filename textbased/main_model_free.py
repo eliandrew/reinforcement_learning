@@ -49,15 +49,22 @@ should_render = should_render == "y"
 
 pi = utils_model_free.initial_pi(env)
 
-q_opt, pi_opt = utils_model_free.monte_carlo_control(
-    pi, env, int(n_episodes), 1.0, False)
+q_sarsa, pi_sarsa = utils_model_free.sarsa(
+    env, pi, int(n_episodes), gamma=0.9, debug=True)
 
-v_pi = utils_model.value_iteration(env.P, 0.9)
+# q_carlo, pi_carlo = utils_model_free.monte_carlo_control(
+#     pi, env, int(n_episodes), gamma=0.9, debug=True, render=False)
 
-q_v_pi = utils.state_values_to_action_values(v_pi, env)
+# v_pi = utils_model.value_iteration(env.P, 0.9)
 
-print("State action values: {}\n".format(q_opt))
-print("State action values from q: {}\n".format(q_v_pi))
+# q_v_pi = utils.state_values_to_action_values(v_pi, env)
+
+# print("Q: {}\n".format(q_carlo))
+pi_opt = pi_sarsa
+
+# for s in q_sarsa:
+#     print("SARSA: {}, MC: {}, VI: {}\n".format(sorted(q_sarsa[s], key=q_sarsa[s].get), sorted(
+#         q_carlo[s], key=q_carlo[s].get), sorted(q_v_pi[s], key=q_v_pi[s].get)))
 
 input("Press enter to start simulation\n")
 
