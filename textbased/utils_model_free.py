@@ -19,7 +19,7 @@ def sarsa(env, pi, nE, alpha=0.01, gamma=1.0, epsilon_0=1.0, debug=False, render
     """Calculates Q using the on-policy SARSA method
     """
     q_pi = defaultdict(lambda: defaultdict(float))
-
+    min_epsilon = 0.01
     for e in range(nE):
         if debug:
             if e % 1000 == 0:
@@ -28,7 +28,6 @@ def sarsa(env, pi, nE, alpha=0.01, gamma=1.0, epsilon_0=1.0, debug=False, render
         done = False
         s = env.reset()
         a = pi(s)
-        min_epsilon = 0.01
         epsilon = (epsilon_0 - min_epsilon) * \
             (1.0 - float(e + 1) / float(nE)) + min_epsilon
         while not done:
@@ -42,7 +41,7 @@ def sarsa(env, pi, nE, alpha=0.01, gamma=1.0, epsilon_0=1.0, debug=False, render
             a = a_prime
             pi = epsilon_greedy(q_pi, env, epsilon)
 
-    return q_pi, epsilon_greedy(q_pi, env, 0)
+    return q_pi, pi
 
 
 def monte_carlo_control(pi, env, n, gamma=1.0, epsilon_0=1.0, debug=False, render=False):
@@ -61,7 +60,7 @@ def monte_carlo_control(pi, env, n, gamma=1.0, epsilon_0=1.0, debug=False, rende
         q_pi = monte_carlo_step(q_pi, N, G)
         pi = epsilon_greedy(q_pi, env, epsilon)
 
-    return q_pi, epsilon_greedy(q_pi, env, 0)
+    return q_pi, pi
 
 
 def monte_carlo_episode(pi, env, gamma=1.0, render=False):
@@ -101,7 +100,7 @@ def monte_carlo_step(q_k, N, G, alpha=0.01):
     for s in N:
         for a in N[s]:
             if N[s][a] > 0:
-                q_pi[s][a] += (1/N[s][a])*(G-q_pi[s][a])
+                q_pi[s][a] += alpha*(G-q_pi[s][a])
 
     return q_pi
 

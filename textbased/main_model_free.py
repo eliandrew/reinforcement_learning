@@ -50,15 +50,16 @@ should_render = should_render == "y"
 pi = utils_model_free.initial_pi(env)
 
 q_sarsa, pi_sarsa = utils_model_free.sarsa(
-    env, pi, int(n_episodes), gamma=0.1, debug=True)
+    env, pi, int(n_episodes), gamma=0.9, debug=True)
 
 # q_carlo, pi_carlo = utils_model_free.monte_carlo_control(
-#     pi, env, int(n_episodes), gamma=0.9, render=False)
+#     pi, env, int(n_episodes), gamma=0.9, debug=True, render=False)
 
 # v_pi = utils_model.value_iteration(env.P, 0.9)
 
 # q_v_pi = utils.state_values_to_action_values(v_pi, env)
 
+# print("Q: {}\n".format(q_carlo))
 pi_opt = pi_sarsa
 
 # for s in q_sarsa:
