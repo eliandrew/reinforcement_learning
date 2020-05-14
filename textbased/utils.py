@@ -2,6 +2,18 @@ import numpy as np
 from collections import defaultdict
 
 
+def epsilon_greedy(q_k, env, epsilon):
+    """
+    From Q values generated, return a stochastic epsilon greedy policy
+    """
+    def pi(s):
+        a = env.action_space.sample()
+        best = max(q_k[s], key=q_k[s].get) if len(q_k[s]) > 0 else a
+        return np.random.choice([a, best], p=[epsilon, 1-epsilon])
+
+    return pi
+
+
 def display_values(v, n, m):
     """Displays the values in v on an nxm grid.
     """
@@ -24,3 +36,21 @@ def state_values_to_action_values(v_pi, env, gamma=1.0):
                               for prob, s_prime, r, _ in env.P[s][a]])
 
     return q_pi
+
+
+def combine_nested_dicts(a, b):
+    """Combines the 2D dicts of floats a and b by adding together values for
+    each key.
+    """
+    result = a.copy()
+    for outer_key in b:
+        for inner_key in b[outer_key]:
+            result[outer_key][inner_key] += b[outer_key][inner_key]
+    return result
+
+
+def initial_pi(env):
+    """
+    This returns an arbitrary pi for a given environment
+    """
+    return lambda s: env.action_space.sample()

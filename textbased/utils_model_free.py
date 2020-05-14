@@ -1,35 +1,23 @@
 import numpy as np
 from collections import defaultdict
 import time
+import utils
 
 
-def epsilon_greedy(q_k, env, epsilon):
-    """
-    From Q values generated, return a stochastic epsilon greedy policy
-    """
-    def pi(s):
-        a = env.action_space.sample()
-        best = max(q_k[s], key=q_k[s].get) if len(q_k[s]) > 0 else a
-        return np.random.choice([a, best], p=[epsilon, 1-epsilon])
-
-    return pi
-
-
-def sarsa(env, pi, nE, alpha=0.01, gamma=1.0, epsilon_0=1.0, debug=False, render=False):
+def sarsa(env, pi, nE, alpha=0.01, gamma=1.0, min_epsilon=0.01, debug=False, render=False):
     """Calculates Q using the on-policy SARSA method
     """
     q_pi = defaultdict(lambda: defaultdict(float))
-    min_epsilon = 0.01
     for e in range(nE):
-        if debug:
-            if e % 1000 == 0:
-                print("Completed {} episodes".format(e))
-
         done = False
         s = env.reset()
         a = pi(s)
-        epsilon = (epsilon_0 - min_epsilon) * \
-            (1.0 - float(e + 1) / float(nE)) + min_epsilon
+        epsilon = (1.0 - min_epsilon) * \
+            (1.0 - float(e) / float(nE)) + min_epsilon
+        if debug:
+            if e % 1000 == 0:
+                print("Completed {} episodes".format(e))
+                print("Epsilon: {}".format(epsilon))
         while not done:
             if render:
                 env.render()
@@ -42,26 +30,26 @@ def sarsa(env, pi, nE, alpha=0.01, gamma=1.0, epsilon_0=1.0, debug=False, render
 
             s = s_prime
             a = a_prime
-            pi = epsilon_greedy(q_pi, env, epsilon)
+            pi = utils.epsilon_greedy(q_pi, env, epsilon)
 
     return q_pi, pi
 
 
-def monte_carlo_control(pi, env, n, gamma=1.0, epsilon_0=1.0, debug=False, render=False):
+def monte_carlo_control(pi, env, n, gamma=1.0, min_epsilon=0.01, debug=False, render=False):
     """
     This takes a policy and performs the monte carlo update
     """
     q_pi = defaultdict(lambda: defaultdict(float))
-    min_epsilon = 0.05
     for i in range(n):
+        epsilon = (1.0 - min_epsilon) * \
+            (1 - float(i) / float(n)) + min_epsilon
         if debug:
             if i % 1000 == 0:
                 print("Finished {} episodes".format(i))
-        epsilon = (epsilon_0 - min_epsilon) * \
-            (1 - float(i + 1) / float(n)) + min_epsilon
+                print("Epsilon: {} episodes".format(epsilon))
         G, N = monte_carlo_episode(pi, env, gamma, render)
         q_pi = monte_carlo_step(q_pi, N, G)
-        pi = epsilon_greedy(q_pi, env, epsilon)
+        pi = utils.epsilon_greedy(q_pi, env, epsilon)
 
     return q_pi, pi
 
@@ -106,10 +94,3 @@ def monte_carlo_step(q_k, N, G, alpha=0.01):
                 q_pi[s][a] += alpha*(G-q_pi[s][a])
 
     return q_pi
-
-
-def initial_pi(env):
-    """
-    This returns an arbitrary pi for a given environment
-    """
-    return lambda s: env.action_space.sample()
