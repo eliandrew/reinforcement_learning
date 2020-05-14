@@ -46,16 +46,6 @@ def combine_nested_dicts(a, b):
     for outer_key in b:
         for inner_key in b[outer_key]:
             result[outer_key][inner_key] += b[outer_key][inner_key]
-
-    # result = defaultdict(lambda: defaultdict(float))
-    # for outer_key, inner_dict in a.items():
-    #     for inner_key, value in inner_dict.items():
-    #         result[outer_key][inner_key] += value + b[outer_key][inner_key]
-    # for outer_key, inner_dict in b.items():
-    #     if outer_key not in result:
-    #         for inner_key, value in inner_dict.items():
-    #             if inner_key not in result[outer_key]:
-    #                 result[outer_key][inner_key] += value
     return result
 
 
