@@ -3,6 +3,7 @@ import utils_model_free
 import utils
 import utils_model
 import time
+import utils_Q
 
 from lake_envs import *
 
@@ -55,16 +56,18 @@ q_sarsa, pi_sarsa = utils_model_free.sarsa(
 # q_carlo, pi_carlo = utils_model_free.monte_carlo_control(
 #     pi, env, int(n_episodes), gamma=0.9, debug=True, render=False)
 
-# v_pi = utils_model.value_iteration(env.P, 0.9)
+v_pi = utils_model.value_iteration(env.P, 0.9)
 
-# q_v_pi = utils.state_values_to_action_values(v_pi, env)
+q_v_pi = utils.state_values_to_action_values(v_pi, env)
+
+q_q, pi_q = utils_Q.Q_learning(env, int(n_episodes), debug=True, render=False)
 
 # print("Q: {}\n".format(q_carlo))
-pi_opt = pi_sarsa
+pi_opt = pi_q
 
-# for s in q_sarsa:
-#     print("SARSA: {}, MC: {}, VI: {}\n".format(sorted(q_sarsa[s], key=q_sarsa[s].get), sorted(
-#         q_carlo[s], key=q_carlo[s].get), sorted(q_v_pi[s], key=q_v_pi[s].get)))
+for s in q_sarsa:
+    print("SARSA: {}, Q: {}, VI: {}\n".format(sorted(q_sarsa[s], key=q_sarsa[s].get), sorted(
+        q_q[s], key=q_q[s].get), sorted(q_v_pi[s], key=q_v_pi[s].get)))
 
 input("Press enter to start simulation\n")
 
