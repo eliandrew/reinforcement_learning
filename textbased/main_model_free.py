@@ -1,6 +1,7 @@
 import gym
-import utils_model_free
 import utils
+import utils_monte_carlo
+import utils_sarsa
 import utils_model
 import time
 import utils_q
@@ -45,6 +46,7 @@ total_reward = 0
 
 min_epsilon = float(input("Min Epsilon: "))
 gamma = float(input("Gamma: "))
+lamb = float(input("Lambda: "))
 n_episodes = int(input("Num Episodes: "))
 n_episodes_watch = int(input("Num of episodes to watch: "))
 should_render = "y" == input("Render (y/n): ")
@@ -61,20 +63,20 @@ q_pi = q_v_pi
 pi_opt = utils.epsilon_greedy(q_pi, env, epsilon=min_epsilon)
 
 if algo == 1:
-    q_pi, pi_opt = utils_model_free.sarsa(
-        env, pi, n_episodes, gamma=gamma, min_epsilon=min_epsilon, debug=should_debug)
+    q_pi, pi_opt = utils_sarsa.sarsa(
+        env, pi, n_episodes, gamma=gamma, min_epsilon=min_epsilon, lamb=lamb, debug=should_debug)
 
 elif algo == 2:
-    q_pi, pi_opt = utils_model_free.monte_carlo_control(
+    q_pi, pi_opt = utils_monte_carlo.monte_carlo_control(
         pi, env, n_episodes, gamma=gamma, min_epsilon=min_epsilon, debug=should_debug)
 
 elif algo == 3:
     q_pi, pi_opt = utils_q.q_learning(
-        env, n_episodes, min_epsilon=min_epsilon, gamma=gamma, debug=should_debug)
+        env, n_episodes, min_epsilon=min_epsilon, gamma=gamma, lamb=lamb, debug=should_debug)
 
 elif algo == 4:
     q_pi, pi_opt = utils_q.double_q_learning(
-        env, n_episodes, gamma=gamma, min_epsilon=min_epsilon, debug=should_debug)
+        env, n_episodes, gamma=gamma, min_epsilon=min_epsilon, lamb=lamb, debug=should_debug)
 
 for s in q_pi:
     print("Algo: {}, VI: {}\n".format(
