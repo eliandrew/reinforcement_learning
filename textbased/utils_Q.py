@@ -34,7 +34,7 @@ def q_learning(env, nE, min_epsilon=0.01, alpha=0.01, gamma=0.9, lamb=0.2, debug
             s_prime, r, done, _ = env.step(a)
             a_target = utils.epsilon_greedy(q_pi, env, 0)(s_prime)
 
-            delta = r + E[s][a]*q_pi[s_prime][a_target]-q_pi[s][a]
+            delta = r + q_pi[s_prime][a_target]-q_pi[s][a]
             E[s][a] += 1.0
 
             for s in q_pi:
@@ -84,9 +84,13 @@ def double_q_learning(env, nE, alpha=0.01, gamma=0.9, lamb=0.2, min_epsilon=0.01
             s_prime, r, done, _ = env.step(a)
 
             if np.random.rand() < 0.5:
+                a_prime = utils.epsilon_greedy(
+                    q_2, env, epsilon=0)(s_prime)
                 delta = r + q_2[s_prime][a_prime] - q_1[s][a]
                 flag = True
             else:
+                a_prime = utils.epsilon_greedy(
+                    q_1, env, epsilon=0)(s_prime)
                 delta = r + q_1[s_prime][a_prime] - q_2[s][a]
                 flag = False
             E[s][a] += 1
@@ -94,13 +98,9 @@ def double_q_learning(env, nE, alpha=0.01, gamma=0.9, lamb=0.2, min_epsilon=0.01
             for s in q_1:
                 for a in q_1[s]:
                     if flag:
-                        a_prime = utils.epsilon_greedy(
-                            q_2, env, epsilon=0)(s_prime)
                         q_1[s][a] += alpha * delta * E[s][a]
 
                     else:
-                        a_prime = utils.epsilon_greedy(
-                            q_1, env, epsilon=0)(s_prime)
                         q_2[s][a] += alpha * delta * E[s][a]
                     E[s][a] *= gamma*lamb
 
