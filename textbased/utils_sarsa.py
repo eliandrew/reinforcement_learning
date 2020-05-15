@@ -29,12 +29,12 @@ def sarsa(env, pi, nE, alpha=0.01, gamma=1.0, lamb=0.2, min_epsilon=0.01, debug=
             s_prime, r, done, _ = env.step(a)
             a_prime = pi(s_prime)
 
+            delta = r + q_pi[s_prime][a_prime] - q_pi[s][a]
             E[s][a] += 1.0
 
             for s in q_pi:
                 for a in q_pi[s]:
-                    q_pi[s][a] += alpha * \
-                        (r + E[s][a] * q_pi[s_prime][a_prime] - q_pi[s][a])
+                    q_pi[s][a] += alpha * delta * E[s][a]
                     E[s][a] *= gamma*lamb
 
             s = s_prime
