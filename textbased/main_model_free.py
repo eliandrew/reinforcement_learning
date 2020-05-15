@@ -59,16 +59,15 @@ pi = utils.initial_pi(env)
 v_pi = utils_model.value_iteration(env.P, gamma=gamma)
 q_v_pi = utils.state_values_to_action_values(v_pi, env)
 
-q_pi = q_v_pi
-pi_opt = utils.epsilon_greedy(q_pi, env, epsilon=min_epsilon)
+pi_opt = utils.epsilon_greedy(q_v_pi, env, epsilon=min_epsilon)
 
 if algo == 1:
-    q_pi, pi_opt = utils_sarsa.sarsa(
-        env, pi, n_episodes, gamma=gamma, min_epsilon=min_epsilon, lamb=lamb, debug=should_debug)
-
-elif algo == 2:
     q_pi, pi_opt = utils_monte_carlo.monte_carlo_control(
         pi, env, n_episodes, gamma=gamma, min_epsilon=min_epsilon, debug=should_debug)
+
+elif algo == 2:
+    q_pi, pi_opt = utils_sarsa.sarsa(
+        env, pi, n_episodes, gamma=gamma, min_epsilon=min_epsilon, lamb=lamb, debug=should_debug)
 
 elif algo == 3:
     q_pi, pi_opt = utils_q.q_learning(
