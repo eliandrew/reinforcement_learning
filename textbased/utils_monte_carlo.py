@@ -9,6 +9,7 @@ def monte_carlo_control(pi, env, n, gamma=1.0, min_epsilon=0.01, debug=False, re
     This takes a policy and performs the monte carlo update
     """
     q_pi = defaultdict(lambda: defaultdict(float))
+
     for i in range(n):
         epsilon = (1.0 - min_epsilon) * \
             (1 - float(i) / float(n)) + min_epsilon

@@ -34,13 +34,14 @@ def q_learning(env, nE, min_epsilon=0.01, alpha=0.01, gamma=0.9, lamb=0.2, debug
             s_prime, r, done, _ = env.step(a)
             a_target = utils.epsilon_greedy(q_pi, env, 0)(s_prime)
 
-            E[s][a] += 1
+            delta = r + q_pi[s_prime][a_target]-q_pi[s][a]
+            E[s][a] += 1.0
 
             for s in q_pi:
                 for a in q_pi[s]:
-                    q_pi[s][a] += alpha * \
-                        (r + E[s][a]*q_pi[s_prime][a_target]-q_pi[s][a])
+                    q_pi[s][a] += alpha * delta * E[s][a]
                     E[s][a] *= gamma*lamb
+
             s = s_prime
 
     return q_pi, utils.epsilon_greedy(q_pi, env, min_epsilon)
@@ -63,6 +64,7 @@ def double_q_learning(env, nE, alpha=0.01, gamma=0.9, lamb=0.2, min_epsilon=0.01
     q_1 = defaultdict(lambda: defaultdict(float))
     q_2 = defaultdict(lambda: defaultdict(float))
     E = defaultdict(lambda: defaultdict(float))
+    flag = True
 
     for e in range(nE):
 
@@ -81,20 +83,25 @@ def double_q_learning(env, nE, alpha=0.01, gamma=0.9, lamb=0.2, min_epsilon=0.01
                                       Counter(q_1[s]) + Counter(q_2[s])}, env, epsilon)(s)
             s_prime, r, done, _ = env.step(a)
 
+            if np.random.rand() < 0.5:
+                a_prime = utils.epsilon_greedy(
+                    q_2, env, epsilon=0)(s_prime)
+                delta = r + q_2[s_prime][a_prime] - q_1[s][a]
+                flag = True
+            else:
+                a_prime = utils.epsilon_greedy(
+                    q_1, env, epsilon=0)(s_prime)
+                delta = r + q_1[s_prime][a_prime] - q_2[s][a]
+                flag = False
             E[s][a] += 1
 
             for s in q_1:
                 for a in q_1[s]:
-                    if np.random.rand() < 0.5:
-                        a_prime = utils.epsilon_greedy(
-                            q_2, env, epsilon=0)(s_prime)
-                        q_1[s][a] += alpha * \
-                            (r + E[s][a] * q_2[s_prime][a_prime] - q_1[s][a])
+                    if flag:
+                        q_1[s][a] += alpha * delta * E[s][a]
+
                     else:
-                        a_prime = utils.epsilon_greedy(
-                            q_1, env, epsilon=0)(s_prime)
-                        q_2[s][a] += alpha * \
-                            (r + E[s][a] * q_1[s_prime][a_prime] - q_2[s][a])
+                        q_2[s][a] += alpha * delta * E[s][a]
                     E[s][a] *= gamma*lamb
 
             s = s_prime
