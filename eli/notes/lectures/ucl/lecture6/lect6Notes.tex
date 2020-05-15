@@ -1,0 +1,216 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,enumitem,amsmath,amssymb,graphicx}
+
+\newcommand{\ub}{\boldsymbol{u}}
+\newcommand{\vb}{\boldsymbol{v}}
+
+\begin{document}
+
+\begin{center}
+{\Large Reinforcement Learning David Silver - Lecture 6 Notes: Value Function Approximation}
+
+\begin{tabular}{rl}
+Name: & Eli Andrew
+\end{tabular}
+\end{center}
+
+  \begin{itemize}
+    \item Estimate value function with function approximation:
+    \begin{gather*}
+      \hat{v}(s, \textbf{w}) \approx v_\pi(s) \\
+      \hat{q}(s, a, \textbf{w}) \approx q_\pi(s,a)
+    \end{gather*}
+    \item Update parameter $\textbf{w}$ using MC and TD methods
+    \item \textbf{Value Function Approximation with SGD}
+    \begin{itemize}
+      \item Goal: find parameter vector $\textbf{w}$ minimizing MSE between
+      approximate value function $\hat{v}(s, \textbf{w})$ and true value function $v_\pi(s)$
+      \begin{gather*}
+        J(\textbf{w}) = E_\pi[(v_\pi(S) - \hat{v}(S, \textbf{w}))^2]
+      \end{gather*}
+      \item Gradient descent finds local minimum:
+      \begin{gather*}
+        \nabla\textbf{w} = -\frac{1}{2}\alpha\nabla_{\textbf{w}}J(\textbf{w}) \\
+        = \alpha E_\pi[(v_\pi(S) - \hat{v}(S, \textbf{w}))\nabla_{\textbf{w}}\hat{v}(S, \textbf{w})]
+      \end{gather*}
+      \item SGD \textit{samples} the gradient (removes expectation):
+      \begin{gather*}
+        \Delta\textbf{w} = \alpha(v_\pi(S) - \hat{v}(S, \textbf{w}))\nabla_{\textbf{w}}\hat{v}(S, \textbf{w})
+      \end{gather*}
+      \item $\alpha$ gives step size: how much to adjust current estimate towards the true value
+      \item $v_\pi(S) - \hat{v}(S, \textbf{w})$ gives the total error of our current estimate
+      \item $\nabla_{\textbf{w}}\hat{v}(S, \textbf{w})$ gives how much each component of $\textbf{w}$ contributed to the overall error
+    \end{itemize}
+    \item State representation is done using \textit{feature vectors} 
+    \begin{gather*}
+      \textbf{x}(S) = (\textbf{x}_1(S), \dots, \textbf{x}_n(S))
+    \end{gather*}
+    \item \textbf{Linear Value Function Approximation}
+    \begin{itemize}
+      \item Represent value function by linear combination of features:
+      \begin{gather*}
+        \hat{v}(S, \textbf{w}) = \textbf{x}(S)^\top \textbf{w} = \sum_{j = 1}^n \textbf{x}_j(S) * \textbf{w}_j
+      \end{gather*}
+      \item Objective function is quadratic in parameters $\textbf{w}$:
+      \begin{gather*}
+        J(\textbf{w}) = E_\pi[(v_\pi(S) - \textbf{x}(S)^\top\textbf{w})^2]
+      \end{gather*}
+      \item SGD converges on global optimum using update rule:
+      \begin{gather*}
+        \nabla_{\textbf{w}}\hat{v}(S, \textbf{w}) = \textbf{x}(S) \\
+        \Delta \textbf{w} = \alpha (v_\pi(S) - \hat{v}(S, \textbf{w}))\textbf{x}(S)
+      \end{gather*}
+    \end{itemize}
+    \item \textbf{Table lookup features} (special case of linear function approximation)
+    \begin{itemize}
+      \item Table lookup features just indicate if we're in a given state
+      \begin{gather*}
+        x^{table}(S) = (\textbf{1}(S = s_1), \dots, \textbf{1}(S = s_n))
+      \end{gather*}
+      \item Essentially a one-hot encoded vector with length equal to the number of states
+      \item When we multiple this feature vector by our weights $\textbf{w}$ we are just selecting
+      the weight at the same entry as our active state ($s_n$ selects $w_n$)
+      \item In the previous methods, this weight that we're selecting is the current estimate of the value of that state
+    \end{itemize}
+    \item \textbf{Incremental Prediction Algorithms}
+    \begin{itemize}
+      \item There is no \textit{true} value function ever actually available
+      \item So, we must use our current target $v_\pi(s)$ instead
+      \item This gives our $\Delta \textbf{w}$ as:
+      \begin{gather*}
+        \Delta \textbf{w} = \alpha (v_{target}(S) - \hat{v}(S, \textbf{w}))\textbf{x}(S) 
+      \end{gather*}
+      \item Where the $v_{target}(S)$ is defined by the algorithm we're using:
+      \begin{itemize}
+        \item Monte-Carlo: $G_t$
+        \item TD(0): $R_{t+1} + \gamma \hat{v}(S_{t+1}, \textbf{w})$
+        \item TD($\lambda$): $G^\lambda_t$
+      \end{itemize}
+    \end{itemize}
+    \item \textbf{Learning with Function Approximation}
+    \begin{itemize}
+      \item All algorithms (MC, TD, etc.) are used to generate training data that can then
+      be used for updating our $\textbf{w}$ to better predict our $v_{target}(S)$
+      \item Monte Carlo samples training data and performs updates through:
+      \begin{gather*}
+        (S_1, G_1), (S_2, G_2), \dots, (S_T, G_T) \\
+        \Delta \textbf{w} = \alpha (G_t - \hat{v}(S, \textbf{w}))\textbf{x}(S)
+      \end{gather*}
+      \item TD(0) does this through:
+      \begin{gather*}
+        (S_1, R_2 + \gamma \hat{v}(S_2, \textbf{w})), \dots, (S_{T-1}, R_T) \\
+        \Delta \textbf{w} = \alpha (R_{t+1} + \gamma \hat{v}(S_{t + 2}))\textbf{x}(S) \\
+        = \alpha \delta \textbf{x}(S)
+      \end{gather*}
+      \item And TD($\lambda$) does this through:
+      \begin{gather*}
+        (S_1, G_1^\lambda), \dots, (S_{T-1}, G_{T-1}^\lambda) \\
+        \delta_t = R_{t+1} + \gamma \hat{v}(S_{t+1}, \textbf{w}) - \hat{v}(S_t, \textbf{w}) \\
+        E_t = \gamma \lambda E_{t-1} + \textbf{x}(S_t) \\
+        \Delta \textbf{w} = \alpha \delta_t E_t
+      \end{gather*}
+      \item The eligibility trace here is for features now (instead of states)
+      \item In the incremental case we perform these updates to our weights on every single
+      step of the epsiode (as determined by the algorithm we're using). For example, for Monte-Carlo
+      it's one update at the end of every episode and for TD(0) its at every step.
+    \end{itemize}
+    \item \textbf{Control with Function Approximation}
+    \begin{itemize}
+      \item Action-Value Function  Approximation
+      \begin{itemize}
+        \item Approximate the action-value function
+        \begin{gather*}
+          \hat{q}(S, A, \textbf{w}) \approx q_\pi(S, A) \\
+        \end{gather*}
+        \item Minimize MSE between $\hat{q}$ and $q$
+        \begin{gather*}
+          J(\textbf(w)) = E_\pi[(q_\pi(S, A) - \hat{q}(S, A, \textbf{w}))^2]
+        \end{gather*}
+        \item Use SGD to find local minimum
+        \begin{gather*}
+          -\frac{1}{2}\nabla J(\textbf{w}) = (q_\pi(S, A) - \hat{q}(S, A, \textbf{w}))\nabla_{\textbf{w}}\hat{q}(S, A, \textbf{w}) \\
+          \Delta_{\textbf{w}} = \alpha (q_\pi(S, A) - \hat{q}(S, A, \textbf{w}))\nabla_{\textbf{w}}\hat{q}(S, A, \textbf{w})
+        \end{gather*}
+        \item Feature vector $\textbf{x}$ is now a function of both $S$ and $A$
+      \end{itemize}
+    \end{itemize}
+    \item \textbf{Convergence of Prediction Algorithms} \\ \\
+    \begin{tabular}{c | c | c | c}
+    \textbf{Algorithm}&\textbf{Table Lookup}&\textbf{Linear}&\textbf{Non-Linear}\\
+    \hline
+    On-policy MC&YES&YES&YES \\
+    \hline
+    On-policy TD(0)&YES&YES&NO \\
+    \hline
+    On-policy TD($\lambda$)&YES&YES&NO \\
+    \hline
+    Off-policy MC&YES&YES&YES \\
+    \hline
+    Off-policy TD(0)&YES&NO&NO \\
+    \hline
+    Off-policy TD($\lambda$)&YES&NO&NO \\
+    \hline
+    \end{tabular}
+    \item Gradient TD is an algorithm that fixes these issues and converges for all 3 situations
+    \item Gradient TD follows the true gradient of the projected Bellman error unlike TD
+    \item \textbf{Convergence of Control Algorithms} \\ \\
+    \begin{tabular} {c | c | c | c}
+      \textbf{Algorithm}&\textbf{Table Lookup}&\textbf{Linear}&\textbf{Non-linear} \\
+      \hline
+      MC Control&YES&(YES)&NO \\
+      \hline
+      Sarsa&YES&(YES)&NO \\
+      \hline
+      Q-learning&YES&NO&NO \\
+      \hline
+      Gradient Q-learning&YES&YES&NO 
+    \end{tabular}
+    \item \textbf{Batch Reinforcement Learning}
+    \begin{itemize}
+      \item Gradient descent is not sample efficient
+      \item Batch methods seek to find the best fitting value function to the whole batch of training data
+      \item \textbf{Least Squares Prediction}
+      \begin{itemize}
+        \item Use oracle data for value of each state $D = \{(s_1, v^\pi_1), \dots, (s_T, v^\pi_T)\}$
+        \item Calculate least squares error as:
+        \begin{gather*}
+          LS(\textbf{w}) = \sum_{t=1}^T(v_t^\pi - \hat{v}(s_t, \textbf{w}))^2 \\
+          = E_D[(v^\pi - \hat{v}(s, \textbf{w}))^2]
+        \end{gather*}
+      \end{itemize}
+      \item \textbf{SGD with Experience Replay}
+      \begin{itemize}
+        \item Given an experience of data in the same format as $D$
+        \item Repeat two steps:
+        \item (1) Sample state, value from experience
+        \begin{gather*} 
+          (s, v^\pi) \sim D
+        \end{gather*}
+        \item (2) Apply SGD update:
+        \begin{gather*}
+          \Delta \textbf{w} = \alpha (v^\pi - \hat{v}(s, \textbf{w}))\nabla_{\textbf{w}}\hat{v}(s, \textbf{w})
+        \end{gather*}
+        \item This removes the correlation of regular SGD where each update was sequentially related to one another
+        \item Another way to look at this is that we are storing our experienced data rather than throwing it away after each step
+        \item This eventually converges to least squares solution
+      \end{itemize}
+      \item \textbf{Experience Replay in Deep-Q Networks}
+      \begin{itemize}
+        \item Take action $a_t$ according to $\epsilon$-greedy policy
+        \item Store transition ($s_t, a_t, r_{t+1}, s_{t+1}$) in replay memory $D$
+        \item Sample random mini-batch of transitions ($s, a, r, s'$) from $D$
+        \item Compute Q-learning targets w.r.t old fixed parameters $\textbf{w}'$
+        \item Optimize MSE between Q-network and Q-learning targets
+        \begin{gather*}
+          L_i(w_i) = E_{s, a, r, s' \sim D}[(r + \gamma \max\limits_{a'}Q(s', a'; \textbf{w}_i') - Q(s, a; \textbf{w}_i))^2]
+        \end{gather*}
+        \item Using variant of SGD
+        \item This is stable vs. naive Q-learning because (1) it uses experience replay and (2) uses fixed Q-targets
+        \item Experience replay stablizes function approx because it de-corelates the trajectories
+        \item The fixed Q-targets are obtained by having two separate networks where the ``frozen'' one (not being updated) is used as the target to bootstrap to
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+
+
+\end{document}
