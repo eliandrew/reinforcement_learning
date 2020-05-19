@@ -210,6 +210,68 @@ Name: & Eli Andrew
         \item The fixed Q-targets are obtained by having two separate networks where the ``frozen'' one (not being updated) is used as the target to bootstrap to
       \end{itemize}
     \end{itemize}
+    \item \textbf{On Policy Distribution}
+    \begin{itemize}
+      \item A distribution of time spent in each state (normalized to sum to one) can be calculated as
+      \begin{gather*}
+        \mu(s) = \frac{\eta(s)}{\sum_{s'}\eta(s')}, s \in S
+      \end{gather*}
+      \item Where $\eta(s)$ denotes the number of time steps spent, on average, in state $s$ in a single episode
+    \end{itemize}
+    \item \textbf{Coarse Coding}
+    \begin{itemize}
+      \item Cover state space in overlapping spaces
+      \item Features are then just binary (or non-binary) values indicating if the agent is in a particular space
+      \item Since the spaces are overlapping, the features may have more than a single positive value
+      \item The larger each individual space is then larger the update area will be
+      \item While the size of each individual space causes generalizations to be larger/smaller,
+      the final function learned is only slightly affected by the size of the spaces.
+    \end{itemize}
+    \item \textbf{Tile Coding}
+    \begin{itemize}
+      \item Form of coarse coding for multi-dimensional continuous spaces
+      \item Uses multiple overlapping grid-tilings that are offset from one another by a fraction of tile width in each dimension
+      \item Each state then falls into exactly one tile of each tiling
+      \item Using asymmetric tiling offsets allows for better feature generalization
+      \item Within small squares of size $\frac{w}{n}$ where $w$ is tile width and $n$ is number of tilings,
+      all states activate the same tiles, have the same feature representation, and the same approximated value
+      \item Often makes sense to use different shape tiles for different tilings
+    \end{itemize}
+    \item \textbf{Radial Basis Function}
+    \begin{itemize}
+      \item Generalization of coarse coding to continuous valued features
+      \item Typical feature $x_i$ has Gaussian response $x_i(s)$ dependent only on the distance
+      between the state, $s$, and the feature's prototypical or center state, $c_i$, relative to the
+      feature's width, $\sigma_i$
+      \begin{gather*}
+        x_i(s) = \exp(-\frac{||s - c_i||^2}{2\sigma_i^2})
+      \end{gather*}
+    \end{itemize}
+    \item Setting $\alpha$ to $(\tau E[x^\top x])^{-1}$ is a good rule of thumb
+    \item Kernel trick
+    \item \textbf{Interest and Emphasis}
+    \begin{itemize}
+      \item On-policy distribution is distribution of states encountered while following
+      the target policy
+      \item \textbf{Interest}: non-negative scaler measure $I_t$ that indicates the degree to which we
+      are interested in accurately valuing the state (or state-action pair) at time $t$
+      \item Distribution $\mu$ following target-policy is then weighted by $I$
+      \item \textbf{Emphasis}: scaler $M_t$ that multiplies the learning update therefore emphasizing or de-emphasizing
+      updates at time $t$
+      \item Emphasis is determined recursively from the interest by:
+      \begin{gather*}
+        M_t = I_t + \gamma^nM_{t-n}
+      \end{gather*}
+    \end{itemize}
+    \item Average reward defined as:
+    \begin{gather*}
+      r(\pi) = \sum\limits_{s}\mu_\pi(s)\sum\limits_{a}\pi(a|s)\sum\limits_{s', r}p(s', r | s, a)
+    \end{gather*}
+    \item In average reward setting, the returns are defined in terms of differences between
+    rewards and the average reward (this is called \textit{differential return}):
+    \begin{gather*}
+      G_t = R_{t+1} - r(\pi) + R_{t+2} - r(\pi) + R_{t+3} - r(\pi) + \dots
+    \end{gather*}
   \end{itemize}
 
 
