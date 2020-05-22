@@ -12,7 +12,7 @@ def run_environment(env, pi, nE, debug=False, render=False):
         while not done:
             if render:
                 env.render()
-                time.sleep(0.25)
+                time.sleep(0.05)
             a = pi(s)
             s_prime, r, done, _ = env.step(a)
             s = s_prime
