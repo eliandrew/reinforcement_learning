@@ -1,0 +1,317 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,enumitem,amsmath,amssymb,graphicx}
+
+\newcommand{\ub}{\boldsymbol{u}}
+\newcommand{\vb}{\boldsymbol{v}}
+
+\begin{document}
+
+\begin{center}
+{\Large Reinforcement Learning David Silver - Lecture 7 Notes: Policy Gradient}
+
+\begin{tabular}{rl}
+Name: & Eli Andrew
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{Policy-based RL}
+  \begin{itemize}
+    \item Previously, we were parameterizing $V$ and $Q$ and generating a policy directly from them
+    (using $\epsilon$-greedy for example)
+    \item Now, we directly parameterize the policy
+    \begin{gather*}
+      \pi_\theta(s,a) = P[a | s, \theta]
+    \end{gather*}
+    \item The motivation here is, once again, to be able to scale efficiently to many states
+    \item Advantages:
+    \begin{itemize}
+      \item Better convergence properties
+      \item (best reason) Effective in high-dimensional or continuous action spaces
+      \item Can learn stochastic policies
+    \end{itemize}
+    \item Disadvantages:
+    \begin{itemize}
+      \item Typically converge to a local rather than global optimum
+      \item Evaluating a policy is typically inefficient and high variance
+    \end{itemize}
+    \item Why would you want a stochastic policy?
+    \begin{itemize}
+      \item Games like Rock-paper-scissors
+      \item State aliasing problems where the agent can't differentiate between certain states
+      \item The state aliasing problem can occur because of a partially observed enviornment
+      (which is equivalent to not having the correct features to represent the enviornment)
+      \item If we have state aliasing with a determinisic policy, then all aliased states
+      (different states that appear the same) will have to have the same action
+    \end{itemize}
+  \end{itemize}
+  \item \textbf{Policy Objective Functions}
+  \begin{itemize}
+    \item Goal: given policy $\pi_\theta(s,a)$ with parameters $\theta$, find best $\theta$
+    \item How to measure quality of policy $\pi_\theta(s,a)$
+    \begin{itemize}
+      \item Episodic environments: use \textbf{start value}
+      \begin{gather*}
+        J_1(\theta) = V^{\pi_\theta}(s_1) = E_{\pi_\theta}[v_1]
+      \end{gather*}
+      \item In continuing environments: use \textbf{average reward per time-step}
+      \begin{gather*}
+        J_{avR}(\theta) = \sum\limits_s d^{\pi_\theta}(s) \sum\limits_a \pi_\theta(s, a)R_s^a
+      \end{gather*}
+      \item Or \textbf{average value}
+      \begin{gather*}
+        J_{avV}(\theta) = \sum\limits_s d^{\pi_\theta}(s)V^{\pi_\theta}(s)
+      \end{gather*}
+      \item Where $d^{\pi_\theta}(s)$ is stationary distribution of Markov chain for $\pi_\theta$
+    \end{itemize}
+  \end{itemize}
+  \item \textbf{Policy Optimization}
+  \begin{itemize}
+    \item Find $\theta$ that minimises $J(\theta)$
+    \item Some approaches don't use gradient
+    \begin{itemize}
+      \item Hill climbing
+      \item Simplex / amoeba / Nelder Mead
+      \item Genetic algorithms
+    \end{itemize}
+    \item Greater efficiency often possible using gradient
+    \begin{itemize}
+      \item Gradient descent
+      \item Conjugate gradient
+      \item Quasi-newton
+    \end{itemize}
+  \end{itemize}
+  \item \textbf{Policy Gradient}
+  \begin{itemize}
+    \item Let $J(\theta)$ be any policy objective function
+    \item Policy gradient algorithms search for \textit{local} maximum
+    in $J(\theta)$ by ascending the gradient of the policy, w.r.t parameters
+    $\theta$
+    \begin{gather*}
+      \Delta \theta = \alpha \nabla_\theta J(\theta) 
+    \end{gather*}
+    \item Where $\nabla_\theta J(\theta)$ is the \textbf{policy gradient} and
+    $\alpha$ is step size parameter
+  \end{itemize}
+  \item \textbf{Score Function}
+  \begin{itemize}
+    \item Assume policy $\pi_\theta$ is differentiable everywhere we can take actions
+    \item Assume we know gradient $\nabla_\theta \pi_\theta(s, a)$
+    \item Likelihood ratios exploit the following identity:
+    \begin{gather*}
+      \nabla_\theta \pi_\theta (s, a) = \pi_\theta(s, a) \frac{\nabla_\theta \pi_\theta(s, a)}{\pi_\theta(s, a)} \\
+      = \pi_\theta (s, a) \nabla_\theta \log \pi_\theta (s, a)
+    \end{gather*}
+    \item Score Function is: $\nabla_\theta \log \pi_\theta (s, a)$
+    \item Using this form allows us to take expectations much easier
+  \end{itemize}
+  \item \textbf{Softmax Policy}
+  \begin{itemize}
+    \item Weight actions using linear combination of features $\phi(s, a)^\top\theta$
+    \item Probability of action is proportional to exponentiated weight:
+    \begin{gather*}
+      \pi_\theta(s,a) \propto \exp(\phi(s,a)^\top\theta)
+    \end{gather*}
+    \item Score function is then:
+    \begin{gather*}
+      \nabla_\theta \log \pi_\theta(s, a) = \phi(s, a) - E_{\pi_\theta} [\phi(s, .)]
+    \end{gather*}
+    \item In other words the score function is the difference between the 
+    feature of the action we actually took and the average feature: this says how much
+    more of this function do I have than usual
+    \item Since adjustments are then made based on this difference, it means that if I feature
+    contributed more than usual then it will be updated more in the direction of the reward we received
+  \end{itemize}
+  \item \textbf{Gaussian Policy}
+  \begin{itemize}
+    \item Most common policy for continuous action spaces
+    \item Mean is linear combination of state features
+    \begin{gather*}
+      \mu(s) = \phi(s)^\top\theta
+    \end{gather*}
+    \item Variance may be fixed $\sigma^2$ or can be parameterized
+    \item Policy is Gaussian:
+    \begin{gather*}
+      a \sim \mathcal{N}(\mu(s), \sigma^2)
+    \end{gather*}
+    \item Score function is:
+    \begin{gather*}
+      \nabla_\theta \log \pi_\theta(s, a) = \frac{(a - \mu(s))\phi(s)}{\sigma^2}
+    \end{gather*}
+  \end{itemize}
+  \item \textbf{One step MDP}
+  \begin{itemize}
+    \item Use example of a simple one-step MDP where you start in state $s \sim d(s)$ and terminate
+    after one step with reward $r = R_{s,a}$
+    \item Likelihood ratios help with calculating Policy gradient:
+    \begin{gather*}
+      J(\theta) = E[r] \\
+      = \sum\limits_{s \in S} d(s) \sum\limits_{a \in A} \pi_\theta(s, a) R_{s, a} \\
+      \nabla_\theta J(\theta) = \sum\limits_{s \in S} d(s) \sum\limits_{a \in A} \pi_\theta(s,a) \nabla_\theta \log (\pi_\theta(s,a)) R_{s,a} \\
+      = E[\nabla_\theta \log(\pi_\theta(s,a))r] 
+    \end{gather*}
+  \end{itemize}
+  \item \textbf{Policy Gradient Theorem}
+  \begin{itemize}
+    \item Generalizes liklihood ratio to multi-step MDPs
+    \item Replaces instantaneous reward $r$ with long term value $Q^\pi(s, a)$
+    \item Applies to start state objective, average reward, and average value objective
+    \item Theorem: for any differentiable policy $\pi_\theta(s, a)$ for any of the applicable
+    objective functions (stated above) the policy gradient is:
+    \begin{gather*}
+      \nabla_\theta J(\theta) = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s, a) Q^{\pi_\theta}(s,a)]
+    \end{gather*}
+  \end{itemize}
+  \item \textbf{Monte Carlo Policy Gradient}
+  \begin{itemize}
+    \item Use $v_t$ as an unbiased sample of $Q^{\pi_\theta}(s_t, a_t)$
+    \item For each episode: select ${s_1, a_1, r_2, \dots, s_{T-1}, a_{T-1}, r_T} \sim \pi_\theta$
+    \item For each time step of the epsiode make update: $\theta \leftarrow \theta + \alpha \nabla_\theta \log \pi_\theta (s_t, a_t)v_t$
+    \item Where $v_t$ is cummulated rewards from that time step onwards
+  \end{itemize}
+  \item \textbf{Reducing variance with a Critic}
+  \begin{itemize}
+    \item Monte-Carlo policy gradient has high variance
+    \item Use a \textbf{critic} to estimate the state-action value function:
+    \begin{gather*}
+      Q_w(s,a) \approx Q^{\pi_\theta}(s,a)
+    \end{gather*}
+    \item Actor-critic algorithms maintain two sets of parameters 
+    \begin{itemize}
+      \item Critic: Updates action-value function parameters $w$
+      \item Actor: Updates policy parameters $\theta$, in direction suggested by critic
+    \end{itemize}
+    \item Actor-critic algorithms follow an \textit{approximate} policy gradient
+    \begin{gather*}
+      \nabla_\theta J(\theta) \approx E_{\pi_\theta} [\nabla_\theta \log \pi_\theta (s,a) Q_w(s,a)] \\
+      \Delta \theta = \alpha \nabla_\theta \log \pi_\theta (s,a) Q_w(s,a)
+    \end{gather*}
+  \end{itemize}
+  \item \textbf{Action-Value Actor-Critic}
+  \begin{itemize}
+    \item Using linear value function approx. $Q_w(s,a) = \phi(s,a)^\top w$
+    \begin{itemize}
+      \item Critic: Updates $w$ by linear TD(0)
+      \item Actor: Updates $\theta$ by policy gradient
+      \item Intialize $s, \theta$
+      \item Sample $a \sim \pi_\theta$
+      \item For each step:
+      \begin{gather*}
+        \mbox{Sample reward } r = R_s^a; \mbox{ Sample transition } s' \sim P_s^a \\
+        \mbox{Sample action } a' \sim \pi_\theta(s', a') \\
+        \delta = r + \gamma Q_w(s', a') - Q_w(s, a) \\
+        \theta = \theta + \alpha \nabla_\theta \log \pi_\theta (s,a) Q_w(s,a) \\
+        w \leftarrow w + \beta \delta \phi(s,a) \\
+        a \leftarrow a', s \leftarrow s'
+      \end{gather*}
+    \end{itemize}
+    \item In summary:
+    \begin{itemize}
+      \item Actor picks the actions using some policy
+      \item Critic evaluates and says whether the actions are good or bad
+      \item Actor moves its policy in the direction suggested by the critic
+    \end{itemize}
+  \end{itemize}
+  \item \textbf{Reducing Variance Using a Baseline}
+  \begin{itemize}
+    \item Subtract a baseline function $B(s)$ from the policy gradient
+    \item This reduces variance without changing expectation:
+    \begin{gather*}
+      E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s, a) B(s)] = \sum\limits_{s \in S}d^{\pi_\theta}(s) \sum\limits_{a} \nabla_\theta \pi_\theta (s,a) B(s) \\
+      = \sum\limits_{s \in S} d^{\pi_\theta} B(s) \nabla_\theta \sum\limits_{a \in A} \pi_\theta (s,a) \\
+      = 0
+    \end{gather*}
+    \item State value function is good baseline: $B(s) = V^{\pi_\theta}(s)$
+    \item Re-write policy gradient using advantage function: $A^{\pi_\theta}(s,a)$:
+    \begin{gather*}
+      A^{\pi_\theta}(s, a) = Q^{\pi_\theta}(s, a) - V^{\pi_\theta}(s) \\
+      \nabla_\theta J(\theta) = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta(s,a) A^{\pi_\theta}]
+    \end{gather*}
+    \item Advantage function tells us how much better it is than usual to take action $a$
+    \item $\nabla_\theta \log \pi_\theta (s,a)$ tells us how to adjust $\theta$ to acheive that action $a$ with our policy $\pi_\theta$
+  \end{itemize}
+  \item \textbf{Estimating the Advantage Function}
+  \begin{itemize}
+    \item TD-error is a sample of the advantage function
+    \item For true value function $V^{\pi_\theta}(s)$, the TD-error $\delta^{\pi_\theta}$
+    \begin{gather*}
+      \delta^{\pi_\theta} = r + \gamma V^{\pi_\theta}(s') - V^{\pi_\theta}(s)
+    \end{gather*}
+    \item is an unbiased estimate of the advantage function:
+    \begin{gather*}
+      E[\delta^{\pi_\theta} | s,a] = E_{\pi_\theta}[r + \gamma V^{\pi_\theta}(s') | s,a] - V^{\pi_\theta} \\
+      = Q^{\pi_\theta}(s,a) - V^{\pi_\theta}(s)
+      = A^{\pi_\theta}(s, a)
+    \end{gather*}
+    \item So, we can use TD error to compute policy gradient:
+    \begin{gather*}
+      \nabla_\theta J(\theta) = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s, a) \delta^{\pi_\theta}]
+    \end{gather*}
+    \item And in practice we can just estimate the TD error:
+    \begin{gather*}
+      \delta_v = r + \gamma V_v(s') - V_v(s)
+    \end{gather*}
+    \item This leads to only one set of parameters: $v$
+  \end{itemize}
+  \item \textbf{Natural Policy Gradient}
+  \begin{itemize}
+    \item Policies we've considered have all been stochastic
+    \item We've estimated our policy gradients by sampling our own noise
+    \item Taking expectation of gradient of our own noise can run into issues, especially as Gaussian gets narrower
+    as your policy improves (noise hurts you more the better the policy gets)
+    \item Instead, start with a determinisitc policy
+    \item With the deterministic case where our noise is narrowed down to 0 we get an update:
+    \begin{gather*}
+      \nabla_\theta ^{nat} \pi_\theta (s,a) = G_\theta^{-1}\nabla_\theta \pi_\theta (s,a)
+    \end{gather*}
+    \item Where $G_\theta$ is Fischer Information matrix: $E_{\pi_\theta} [ \nabla_\theta \log \pi_\theta (s, a) \nabla_\theta \log \pi_\theta (s, a)^\top]$
+    \item In practice, this performs much better than stochastic gradient policies especially in cases with continuous actions
+  \end{itemize}
+  \item \textbf{Natural Actor-Critic}
+  \begin{itemize}
+    \item Using compatible function approximation
+    \begin{gather*}
+      \nabla_w A_w (s,a) = \nabla_\theta \log \pi_\theta (s,a)
+    \end{gather*}
+    \item Natural policy gradient becomes:
+    \begin{gather*}
+      \nabla_\theta J(\theta) = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s,a) A^{\pi_\theta}(s,a)] \\
+      = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s,a) \nabla_\theta \log \pi_\theta (s,a)^\top w] \\
+      = G_\theta w
+      \nabla_\theta^{nat} J(\theta) = w
+    \end{gather*}
+  \end{itemize}
+  \item \textbf{Summary of Policy Gradient Algorithms}
+  \begin{itemize}
+    \item The \textbf{policy gradient} has many equivalent forms
+    \item REINFORCE: $v_t$
+    \begin{gather*}
+      \nabla_\theta J(\theta) = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s, a) v_t]
+    \end{gather*}
+    \item Q Actor-Critic: $Q^w(s,a)$
+    \begin{gather*}
+      \nabla_\theta J(\theta) = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s, a) Q^w(s,a)]
+    \end{gather*}
+    \item Advantage Actor-Critic: $A^w(s,a)$
+    \begin{gather*}
+      \nabla_\theta J(\theta) = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s, a) A^w(s,a)]
+    \end{gather*}
+    \item TD Actor-Critic: $\delta$
+    \begin{gather*}
+      \nabla_\theta J(\theta) = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s, a) \delta]
+    \end{gather*}
+    \item TD($\lambda$) Actor-Critic: $\delta e$
+    \begin{gather*}
+      \nabla_\theta J(\theta) = E_{\pi_\theta}[\nabla_\theta \log \pi_\theta (s, a) \delta e]
+    \end{gather*}
+    \item Natural Actor-Critic:
+    \begin{gather*}
+      G_\theta^{-1}\nabla_\theta J(\theta) = w
+    \end{gather*}
+    \item Each form leads a stochastic gradient ascent algorithm
+    \item Critic uses \textbf{policy evaluation} (e.g. MC, TD, or other algorithms from before)
+    to estimate $Q^\pi(s,a), A^\pi(s,a),$ or $V^\pi(s)$
+  \end{itemize}
+\end{itemize}
+
+\end{document}
