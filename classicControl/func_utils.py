@@ -22,8 +22,8 @@ def policy(x, w, nA, e, nE, debug=False):
     epsilon = (1.0 - min_epsilon) * \
         (1 - float(e) / float(nE)) + min_epsilon
 
-    if debug:
-        print("Epsilon: {}".format(epsilon))
+    # if debug:
+    #     print("Epsilon: {}".format(epsilon))
 
     def pi(s):
         greedy_action = np.argmax([linear(s, a, x, w) for a in range(nA)])
