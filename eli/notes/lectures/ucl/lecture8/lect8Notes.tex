@@ -1,0 +1,105 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,enumitem,amsmath,amssymb,graphicx}
+
+\newcommand{\ub}{\boldsymbol{u}}
+\newcommand{\vb}{\boldsymbol{v}}
+
+\begin{document}
+
+\begin{center}
+{\Large Reinforcement Learning David Silver - Lecture 8 Notes: Integrating Learning and Planning}
+
+\begin{tabular}{rl}
+Name: & Eli Andrew
+\end{tabular}
+\end{center}
+
+  \begin{itemize}
+    \item \textbf{Advantages of Model-based RL}
+    \begin{itemize}
+      \item Can efficiently learn model by supervised learning methods
+      \item Model is like the teacher that provides the supervised learning
+      \item Example:
+      \begin{itemize}
+        \item Domain where learning policy or value function is hard (i.e. chess)
+        \item Many different states
+        \item Has sharp value function (single move of a piece can change from won position
+        to lost position)
+        \item Hard to learn this type of value function directly
+        \item Model is straight forward - essentially just rules of the game
+        \item If you can use model to ``look ahead'' you can estimate the value function
+        by planning (by tree search)
+        \item This is easy compared to learning the value function because you are just learning
+        that you have 0 reward for all positions except check mates and draws
+        \item As compared to learning the value function where you are evaluating how likely you are to win
+        from all the many configurations of the pieces
+      \end{itemize}
+      \item Model can be a more useful (and compact) representation of the information
+      than a value function
+      \item Can reason about model uncertainty
+      \begin{itemize}
+        \item Helps you see what you know and don't know about the world
+        \item This way you can strengthen your true understanding of the world and
+        not just your current understanding
+      \end{itemize}
+      \item Disadvantage: learn model and then construct value function (2 sources of error)
+    \end{itemize}
+    \item \textbf{What is a model}
+    \begin{itemize}
+      \item Model $M$ is a representation of an MDP $<S, A, P, R>$ parameterized by $\eta$
+      \item Assume state space and action space are known
+      \item Model $M = <P_\eta, R_\eta>$ represents state transitions
+      $P_\eta \approx P$ and rewards $R_\eta \approx R$
+      \begin{gather*}
+        S_{t+1} \sim P_\eta(S_{t+1} | S_t, A_t) \\
+        R_{t+1} = R_\eta(R_{t+1} | S_t, A_t)
+      \end{gather*}
+    \end{itemize}
+    \item \textbf{Model learning}
+    \begin{itemize}
+      \item Goal: estimate model $M_\eta$ from experience $\{S_1, A_1, R_2, \dots, S_T\}$
+      \item Supervised learning problem
+      \begin{gather*}
+        S_1, A_1 \rightarrow R_2, S_2 \\
+        S_2, A_2 \rightarrow R_3, S_3 \\
+        \dots \\
+        S_{T-1}, A_{T-1} \rightarrow R_T, S_T
+      \end{gather*}
+      \item Learning $s, a \rightarrow r$ is a regression problem
+      \item Learning $s, a \rightarrow s'$ is a density estimation problem (since it is likely stochastic we are
+      learning the distribution)
+      \item Pick loss function (MSE, KL divergence, $\dots$)
+      \item Find parameters $\eta$ that minimize empirical loss
+    \end{itemize}
+    \item \textbf{Examples of Models}
+    \begin{itemize}
+      \item Table lookup model
+      \item Linear expectation model
+      \item Linear Gaussian model
+      \item Gaussian process model
+      \item Deep belief network model
+      \item $\dots$
+    \end{itemize}
+    \item \textbf{Sample-based Planning}
+    \begin{itemize}
+      \item Use the model \textit{only} to generate samples
+      \item Unlike DP where you look at probabilities of transitions
+      and integrate over the probabilities
+      \item You sample experience from the model (rather than knowing
+      all the transition probabilities)
+      \begin{gather*}
+        S_{t+1} \sim P_\eta(S_{t+1} | S_t, A_t) \\
+        R_{t+1} = R_\eta(R_{t+1} | S_t, A_t)
+      \end{gather*}
+      \item Apply \textit{model-free} RL to samples: Monte-Carlo control,
+      Sarsa, Q-learning, etc.
+      \item Sample based planning methods are often more efficient
+      \item Planning is essentially done by solving for the simulated experience
+      drawn from the agents imagined world (its model)
+      \item Sampling is more efficient, even in the case when you know the entire model,
+      because you are essentially focusing on the things that are most likely to happen
+    \end{itemize}
+  \end{itemize}
+
+
+\end{document}
