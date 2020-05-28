@@ -1,0 +1,261 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage,enumitem,amsmath,amssymb,graphicx}
+
+\newcommand{\ub}{\boldsymbol{u}}
+\newcommand{\vb}{\boldsymbol{v}}
+
+\begin{document}
+
+\begin{center}
+{\Large Reinforcement Learning David Silver - Lecture 8 Notes: Integrating Learning and Planning}
+
+\begin{tabular}{rl}
+Name: & Eli Andrew
+\end{tabular}
+\end{center}
+
+  \begin{itemize}
+    \item \textbf{Advantages of Model-based RL}
+    \begin{itemize}
+      \item Can efficiently learn model by supervised learning methods
+      \item Model is like the teacher that provides the supervised learning
+      \item Example:
+      \begin{itemize}
+        \item Domain where learning policy or value function is hard (i.e. chess)
+        \item Many different states
+        \item Has sharp value function (single move of a piece can change from won position
+        to lost position)
+        \item Hard to learn this type of value function directly
+        \item Model is straight forward - essentially just rules of the game
+        \item If you can use model to ``look ahead'' you can estimate the value function
+        by planning (by tree search)
+        \item This is easy compared to learning the value function because you are just learning
+        that you have 0 reward for all positions except check mates and draws
+        \item As compared to learning the value function where you are evaluating how likely you are to win
+        from all the many configurations of the pieces
+      \end{itemize}
+      \item Model can be a more useful (and compact) representation of the information
+      than a value function
+      \item Can reason about model uncertainty
+      \begin{itemize}
+        \item Helps you see what you know and don't know about the world
+        \item This way you can strengthen your true understanding of the world and
+        not just your current understanding
+      \end{itemize}
+      \item Disadvantage: learn model and then construct value function (2 sources of error)
+    \end{itemize}
+    \item \textbf{What is a model}
+    \begin{itemize}
+      \item Model $M$ is a representation of an MDP $<S, A, P, R>$ parameterized by $\eta$
+      \item Assume state space and action space are known
+      \item Model $M = <P_\eta, R_\eta>$ represents state transitions
+      $P_\eta \approx P$ and rewards $R_\eta \approx R$
+      \begin{gather*}
+        S_{t+1} \sim P_\eta(S_{t+1} | S_t, A_t) \\
+        R_{t+1} = R_\eta(R_{t+1} | S_t, A_t)
+      \end{gather*}
+    \end{itemize}
+    \item \textbf{Model learning}
+    \begin{itemize}
+      \item Goal: estimate model $M_\eta$ from experience $\{S_1, A_1, R_2, \dots, S_T\}$
+      \item Supervised learning problem
+      \begin{gather*}
+        S_1, A_1 \rightarrow R_2, S_2 \\
+        S_2, A_2 \rightarrow R_3, S_3 \\
+        \dots \\
+        S_{T-1}, A_{T-1} \rightarrow R_T, S_T
+      \end{gather*}
+      \item Learning $s, a \rightarrow r$ is a regression problem
+      \item Learning $s, a \rightarrow s'$ is a density estimation problem (since it is likely stochastic we are
+      learning the distribution)
+      \item Pick loss function (MSE, KL divergence, $\dots$)
+      \item Find parameters $\eta$ that minimize empirical loss
+    \end{itemize}
+    \item \textbf{Examples of Models}
+    \begin{itemize}
+      \item Table lookup model
+      \item Linear expectation model
+      \item Linear Gaussian model
+      \item Gaussian process model
+      \item Deep belief network model
+      \item $\dots$
+    \end{itemize}
+    \item \textbf{Sample-based Planning}
+    \begin{itemize}
+      \item Use the model \textit{only} to generate samples
+      \item Unlike DP where you look at probabilities of transitions
+      and integrate over the probabilities
+      \item You sample experience from the model (rather than knowing
+      all the transition probabilities)
+      \begin{gather*}
+        S_{t+1} \sim P_\eta(S_{t+1} | S_t, A_t) \\
+        R_{t+1} = R_\eta(R_{t+1} | S_t, A_t)
+      \end{gather*}
+      \item Apply \textit{model-free} RL to samples: Monte-Carlo control,
+      Sarsa, Q-learning, etc.
+      \item Sample based planning methods are often more efficient
+      \item Planning is essentially done by solving for the simulated experience
+      drawn from the agents imagined world (its model)
+      \item Sampling is more efficient, even in the case when you know the entire model,
+      because you are essentially focusing on the things that are most likely to happen
+    \end{itemize}
+    \item \textbf{Dyna-Q}
+    \begin{itemize}
+      \item Use a $Q(s,a)$ and a $Model(s,a)$ to make your decisions
+      \item Get your current $S_t = s$
+      \item Choose $A_t = a$ using your $\max\limits_aQ(s, a)$
+      \item Observe your next state $S_{t+1} = s'$ and reward $R_{t+1} = r$
+      \item Update $Q(s,a)$ with standard Q-learning update rule:
+      \begin{gather*}
+        Q(s,a) \leftarrow Q(s,a) + \alpha (R_{t+1} + \gamma\max\limits_aQ(s',a) - Q(s,a))
+      \end{gather*}
+      \item Add this example to your $Model(s,a)$ (assuming deterministic environment)
+      \begin{gather*}
+        Model(s,a) \leftarrow s', r
+      \end{gather*}
+      \item $Model(s,a)$ is updated using supervised learning
+      \item Then use your $Model(s,a)$ for $n$ iterations:
+      \begin{gather*}
+        s = \mbox{random state you've seen before} \\
+        a = \mbox{random action you've taken from s before} \\
+        s', r = Model(s, a) \\
+        Q(s, a) \leftarrow Q(s, a) + \alpha (r + \gamma\max\limits_aQ(s', a) - Q(s, a))
+      \end{gather*}
+    \end{itemize}
+    \item \textbf{Foward Search}
+    \begin{itemize}
+      \item Select best action by \textbf{lookahead}
+      \item Build \textbf{search tree} with current state $s_t$ at root
+      \item Use \textbf{model} of MDP to look ahead
+      \item No need to solve for whole MDP, just sub-MDP starting from now
+    \end{itemize}
+    \item \textbf{Simulation-based search}
+    \begin{itemize}
+      \item \textbf{Forward search} paradigm using sample-based planning
+      \item \textbf{Simulate} episodes of experience from \textbf{now} with the model
+      \item Apply \textbf{model-free} RL to simulated episodes
+      \begin{itemize}
+        \item Monte-Carlo control on simulated episodes is called \textbf{Monte-Carlo Search}
+        \item Sarsa control on simulated episodes is called \textbf{TD Search}
+      \end{itemize}
+    \end{itemize}
+    \item \textbf{Simple Monte-Carlo Search}
+    \begin{itemize}
+      \item Given a model $M_v$ and a \textbf{simulation policy} $\pi$
+      \item For each action $a \in A$:
+      \begin{itemize}
+        \item Simulate $K$ episodes from current (real) state $s_t$
+        \begin{gather*}
+          \{s_t, a, R^k_{t+1}, S^k_{t+1}, A^k_{t+1}, \dots, S^k_T\}^K_{k=1} \sim M_{v, \pi}
+        \end{gather*}
+        \item Evaluate actions by mean return (Monte-Carlo evaluation)
+        \begin{gather*}
+          Q(s_t, a) = \frac{1}{K} \sum_{k=1}^{K} G_t \rightarrow q_\pi(s_t,a) 
+        \end{gather*}
+      \end{itemize}
+      \item Select current (real) action with maximum value
+      \begin{gather*}
+        a_t = \arg\max\limits_{a \in A} Q(s_t, a)
+      \end{gather*}
+      \item In other words, look at the what you can do from current state (actions you can take)
+      \item Then for each thing you can do from where you are - imagine what happens next (sample trajectories) 
+      \item Say that the average reward you get on all trajectories following what you do now is your estimate for how valuable it is
+      to do that thing now
+      \item Pick the action for what to actually do now by selecting the action that had the highest average return
+    \end{itemize}
+    \item \textbf{Monte-Carlo Tree Search (Evaluation)}
+    \begin{itemize}
+      \item Given a model $M_v$
+      \item Simulate $K$ episodes from current state $s_t$ using current
+      simulation policy $\pi$
+      \begin{gather*}
+        \{s_t, A^k_t, R^k_{t+1}, S^k_{t+1}, \dots, S^k_T\}^K_{k=1} \sim M_{v, \pi}
+      \end{gather*}
+      \item Build a search tree containing visited states and actions
+      \item \textbf{Evaluate} states $Q(s,a)$ by mean return of episodes $s, a$
+      \begin{gather*}
+        Q(s, a) = \frac{1}{N(s, a)}\sum\limits_{k=1}^K \sum\limits_{u=t}^T \textbf{1}(S_u, A_u = s, a)G_u
+      \end{gather*}
+      \item After search is finished, select current (real) action with maximum
+      value in search tree
+      \begin{gather*}
+        a_t = \arg\max\limits_{a \in A} Q(s_t, a)
+      \end{gather*}
+      \item Leaves you with a rich tree history that can be used later (as compared to Simple Monte-Carlo search)
+    \end{itemize}
+    \item \textbf{Monte-Carlo Tree Search (Simulation)}
+    \begin{itemize}
+      \item In Monte-Carlo Tree Search, the simulation policy $\pi$ improves
+      \item Each simulation consists of two-phases (in-tree, out-of-tree)
+      \begin{itemize}
+        \item \textbf{Tree Policy} (improves): pick actions to maximize $Q(S, A)$
+        \item \textbf{Default Policy} (fixed): pick actions randomly
+      \end{itemize}
+      \item Repeat (each simulation):
+      \begin{itemize}
+        \item \textbf{Evaluate} states $Q(S, A)$ by Monte-Carlo evaluation
+        \item \textbf{Improve} tree policy, e.g. by $\epsilon$-greedy(Q)
+      \end{itemize}
+      \item \textbf{Monte-Carlo control} applied to \textbf{simulated experience}
+      \item Converges on the optimal search tree, $Q(S, A) \rightarrow q_*(S, A)$
+      \item The tree policy is always sending you in the current best ($\epsilon$-greedy)
+      trajectory, according to your current estimates. Those estimates are updated on each trajectory
+      that runs through the state-action pair
+    \end{itemize}
+    \item \textbf{Advantages of Monte-Carlo Tree Search}
+    \begin{itemize}
+      \item Highly selective best-first search
+      \begin{itemize}
+        \item Searches the current best path first - rather than trying to search all paths
+      \end{itemize}
+      \item Evaluates states \textit{dynamically} (unlike in DP)
+      \begin{itemize}
+        \item Dynamic programming evaluates whole state-space
+        \item Here we are focusing on where we are right now
+      \end{itemize}
+      \item Uses sampling to break curse of dimensionality
+      \item Works for ``black-box'' models (only requires samples)
+      \item Computationally efficient, anytime, parallelisible
+    \end{itemize}
+    \item \textbf{Temporal-Difference Search}
+    \begin{itemize}
+      \item Simulation based search
+      \item Using TD instead of MC (bootstrapping)
+      \item MC tree search applies MC control to sub-MDP from now
+      \item TD search applies SARSA to sub-MDP from now
+      \item Can be very effective in search spaces that are cyclic
+      \item Process
+      \begin{itemize}
+        \item Simulate episodes from the current (real) state $s_t$ 
+        \item Estimate action-value function $Q(s,a)$
+        \item For each step of simulation, update action-values by SARSA
+        \begin{gather*}
+          \Delta Q(S, A) = \alpha (R + \gamma Q(S', A') - Q(S, A))
+        \end{gather*}
+        \item Select actions based on action values $Q(S, A)$ ($\epsilon$-greedy)
+        \item Can also use function-approximation for $Q$
+      \end{itemize}
+    \end{itemize}
+    \item \textbf{Dyna-2}
+    \begin{itemize}
+      \item Agent stores two sets of feature weights
+      \begin{itemize}
+        \item \textbf{Long-term} memory
+        \item \textbf{Short-term} (working) memory
+      \end{itemize}
+      \item Long-term memory is updated from \textbf{real experience}
+      using TD learning
+      \begin{itemize}
+        \item General domain knowledge that applies to any episode
+      \end{itemize}
+      \item Short-term memory is updated from \textbf{simulated experience}
+      using TD search
+      \begin{itemize}
+        \item Specific local knowledge about the current situation
+      \end{itemize}
+      \item Overall value function is sum of long and short-term memories
+    \end{itemize}
+  \end{itemize}
+
+
+\end{document}
